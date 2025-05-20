@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-01-24 15:18:37.551658 by server.py UNKNOWN
+  options: 
+-->
+
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <edgeData id="0_to_3600" file="edgedata_output_wout_roadworks/edgedata_0_to_3600.out.xml" begin="0" end="3600" excludeEmpty="false"/>
+    <edgeData id="3600_to_7200" file="edgedata_output_wout_roadworks/edgedata_3600_to_7200.out.xml" begin="3600" end="7200" excludeEmpty="false"/>
+</additional>

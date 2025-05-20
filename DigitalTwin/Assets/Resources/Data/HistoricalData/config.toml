@@ -1,0 +1,11 @@
+ID = "0b68d8dd-3ff7-4363-9a3e-98d5fb5b4b89"
+"Start time" = 0
+"End time" = 7200
+"Random departure factor" = 60.0
+"Edge weight factor" = 1.0
+
+["Traffic Definition"]
+"Aggregation Interval: " = 3600
+"Traffic Type" = "Calibrated model"
+"Fringe factor" = 5
+"Vehicles per hour" = 500

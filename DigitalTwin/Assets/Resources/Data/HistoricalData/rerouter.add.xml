@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-01-24 15:18:37.551831 by server.py UNKNOWN
+  options: 
+-->
+
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+     <rerouter id="1041085657#0_0" edges="1041085657#0 17670100#2">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="150276011#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="150275991#1_0" edges="150275991#1 -832629331#1 17670100#2">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="150276011#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-17670100#4_0" edges="-17670100#4 -832629331#1">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="150276011#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="14118785#1_0" edges="14118785#1 17670100#2 -832629331#1">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="150276011#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-781742860#5_0" edges="-781742860#5 7682864#0 -239923867#1">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="239923867#0_0" edges="239923867#0 7682864#0 781742860#4">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="31449007_0" edges="31449007 40493501#0">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="231483314" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="13853659#1_0" edges="13853659#1 40493501#0">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="231483314" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-40493501#0_0" edges="-40493501#0 -13853659#1">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="231483314" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-244422544#1_0" edges="-244422544#1 4730637#0 -450925440">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="450925440_0" edges="450925440 4730637#0 244422544#0">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="17670100#5_0" edges="17670100#5 4730637#0 244422544#0 -450925440">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="47896065_0" edges="47896065 832488061 -47896065">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="616545124_0" edges="616545124 -47896065 832488061">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="31519076#2_0" edges="31519076#2 606127855 606127856 606127853">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="606127856_0" edges="606127856 606127855 -31519076#2 606127853">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="606127854#0_0" edges="606127854#0 606127855 -31519076#2 606127853">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-36786445#2_0" edges="-36786445#2 231483339#0 36786445#0">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-900443644#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="900443644#0_0" edges="900443644#0 231483339#0 36786445#0">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="-900443644#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="628755546#0_0" edges="628755546#0 13430690#0 -628755546#4">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="236306864#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="510692962#0_0" edges="510692962#0 13430690#0 -628755546#4">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="236306864#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-236306864#4_0" edges="-236306864#4 -628755546#4 13430690#0">
+                            <interval begin="0" end="79320">
+                                        <closingReroute id="236306864#0" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="150275992#1_0" edges="150275992#1 555922918#0 150275995#0 29063062#0 -1156337048">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="1156337048_0" edges="1156337048 555922918#0 150275995#0 29063062#0 -150275992#1">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-29063062#0_0" edges="-29063062#0 -1156337048 -150275992#1 555922918#0 150275995#0">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-555922918#0_0" edges="-555922918#0 -150275992#1 -1156337048 29063062#0 150275995#0">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-524150342_0" edges="-524150342 -628755543 1037986847">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-1037986847_0" edges="-1037986847 -628755543 524150342">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="628755543_0" edges="628755543 524150342 1037986847">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="523773489#1_0" edges="523773489#1 1037986847 524150342">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-31411842#0_0" edges="-31411842#0 4730638">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="-31411680#0_0" edges="-31411680#0 31520175#2 31518959#0">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="47895849#3_0" edges="47895849#3 4726710#0">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="507534348#1_0" edges="507534348#1 759157551#0">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="37346632#1_0" edges="37346632#1 -150276003#2">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-17670100#6" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="31445160#2_0" edges="31445160#2 -510702678#1">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="7682863#1_0" edges="7682863#1 -8384930#1">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="8384930#1_0" edges="8384930#1 -7682863#1">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-781742860#2" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="4726785_0" edges="4726785 31389747">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="856293284" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="137238867#3_0" edges="137238867#3 31389747">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="856293284" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="15089551_0" edges="15089551 4726711#0">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="-28575360" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+     <rerouter id="4730648#1_0" edges="4730648#1 155433040#1 399914535">
+                            <interval begin="0" end="68520">
+                                        <closingReroute id="231483314" disallow="passenger"/>
+                                <destProbReroute id="keepDestination" probability="0.5"/>
+                            </interval>
+                        </rerouter>
+</additional>

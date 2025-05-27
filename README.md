@@ -1,6 +1,7 @@
 # Brussels Digital Twin TrafficTwin
 
 This project is an initiative by **FARI- AI for the Common Good**, to create an interactive digital twin of the city of Brussels. Developed with Unity, it enables real-time visualization, simulation and analysis of urban data to support research, urban planning and citizen participation.
+
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/c52e345d-d1b6-4f4e-b2bc-e5f95938f0d7" />
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/7d6b630d-9434-4800-a344-ac861b56dc66" />
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/5a9c158b-2558-4c16-96fc-e7d4a6818c35" />

@@ -17,6 +17,7 @@ The project consists of several key components:
 - **C# Scripts**: Implement the simulation logic, UI behaviors, and data connections.
 - **Cesium for Unity** : Implement precise earth visualization
 - **Data Modules**: Import and process geospatial and temporal datasets.
+<img width="370" alt="image" src="https://github.com/user-attachments/assets/31dc1ac0-094c-476f-a1e5-1706cb711bae" />
 
 
 ## Installation

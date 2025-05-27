@@ -4,6 +4,8 @@ This project is an initiative by **FARI- AI for the Common Good**, to create an 
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/c52e345d-d1b6-4f4e-b2bc-e5f95938f0d7" />
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/7d6b630d-9434-4800-a344-ac861b56dc66" />
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/5a9c158b-2558-4c16-96fc-e7d4a6818c35" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/ab3daadc-0268-4fcc-bfc1-778f95df6938" />
+
 
 
 ---

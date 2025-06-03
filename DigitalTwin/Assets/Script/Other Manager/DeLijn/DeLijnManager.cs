@@ -23,9 +23,14 @@ public class DeLijnManager : MonoBehaviour
     public GameObject stopPrefab;
     //Realtime vehicule
     [SerializeField] private string apiUrlGTFS_RT = "https://api.delijn.be/gtfs/v3/realtime";
+    [SerializeField] private string apiUrlInternRoutes = "http://localhost:5000/api-test/routes.json";
+    [SerializeField] private string apiUrlInternTrips = "http://localhost:5000/api-test/trips.json";
+    [SerializeField] private string apiUrlInternStops = "http://localhost:5000/api-test/stops.json";
+    [SerializeField] private string apiUrlInternShapes = "http://localhost:5000/api-test/shapes.json";
     [SerializeField] private string specialDLApiKey = "1c0e66a542a540328da529b63bbbd387";
     [SerializeField] private float refreshInterval = 5f;
     private ApiClient apiClientDL;
+    private ApiClient localApiClient;
 
     //Location of the stops and shapes
     [Header("Shapes and Stops file Location")]
@@ -60,12 +65,35 @@ public class DeLijnManager : MonoBehaviour
     private GeoJsonCesiumSpawner geoJsonCesiumSpawner = new GeoJsonCesiumSpawner();
     public Cesium3DTileset tileset;
 
-
-    public async void InitDeLijn()
+    public void InitDeLijn()
     {
         InitSceneGameObject();
         geoJsonCesiumSpawner.Initialize(georeference);
-        geoJsonStops = await LoadGeoJsonDataAsync<JsonFeature<DeLijnStopProperties, GeoGeometryPoint>>(stopsPath);
+        apiClientDL = new ApiClient(specialDLApiKey);
+        localApiClient = new ApiClient();
+        StartCoroutine(InitDeLijnNetwork());
+    }
+    private IEnumerator InitDeLijnNetwork()
+    {
+        yield return StartCoroutine(localApiClient.GetApiData<JsonCollection<JsonFeature<DeLijnStopProperties, GeoGeometryPoint>>>(
+            apiUrlInternStops, (data) => {
+                geoJsonStops = data;  // Process stop data
+                if (geoJsonStops != null)
+                {
+                    foreach (var feature in geoJsonStops.features)
+                    {
+                        if (feature.geometry.coordinates[1] >= 50.693 && feature.geometry.coordinates[1] <= 51.013 && feature.geometry.coordinates[0] >= 4.212 && feature.geometry.coordinates[0] <= 4.569)
+                        {
+                            Vector3 positionUcsStop = geoJsonCesiumSpawner.GetCesiumPosition(feature.geometry.coordinates[0], feature.geometry.coordinates[1]);
+                            CreateMarkeurStop(positionUcsStop, feature);
+                        }
+                    }
+                }
+            
+            }
+        ));
+
+        /*geoJsonStops = await LoadGeoJsonDataAsync<JsonFeature<DeLijnStopProperties, GeoGeometryPoint>>(stopsPath);
         if (geoJsonStops != null)
         {
             foreach (var feature in geoJsonStops.features)
@@ -76,10 +104,15 @@ public class DeLijnManager : MonoBehaviour
                     CreateMarkeurStop(positionUcsStop, feature);
                 }
             }
-        }
-        
+        }*/
 
-        geoJsonShapes = await LoadGeoJsonDataAsync<JsonFeature<DeLijnShapeProperties, GeoGeometryLineString>>(shapesPath);
+        yield return StartCoroutine(localApiClient.GetApiData<JsonCollection<JsonFeature<DeLijnShapeProperties, GeoGeometryLineString>>>(
+            apiUrlInternShapes, (data) => {
+                geoJsonShapes = data;  // Process stop data    
+            }
+        ));
+
+        /*geoJsonShapes = await LoadGeoJsonDataAsync<JsonFeature<DeLijnShapeProperties, GeoGeometryLineString>>(shapesPath);
 
         /*
         float startTime = Time.realtimeSinceStartup;
@@ -95,10 +128,20 @@ public class DeLijnManager : MonoBehaviour
         Debug.Log("Durée Stop : " + duration + " secondes");
         */
 
-        tripsData = await LoadTripsJsonAsync(tripsPath);
-        routesData = await LoadRoutesJsonAsync(routesPath);
+        /*tripsData = await LoadTripsJsonAsync(tripsPath);
+        routesData = await LoadRoutesJsonAsync(routesPath);*/
 
-        apiClientDL = new ApiClient(specialDLApiKey);
+        yield return StartCoroutine(localApiClient.GetApiData<Dictionary<string, RouteInfo>>(
+           apiUrlInternRoutes, (data) => {
+               routesData = data;   
+            }
+       ));
+        yield return StartCoroutine(localApiClient.GetApiData<Dictionary<string, TripWrapper>>(
+            apiUrlInternTrips, (data) => {
+                tripsData = data; 
+            }
+        ));
+        
 
         if (geoJsonStops != null && geoJsonShapes != null && tripsData != null && routesData != null)
         {
@@ -110,7 +153,6 @@ public class DeLijnManager : MonoBehaviour
         }
 
     }
-
     private void InitSceneGameObject()
     {
         deLijnParent = new GameObject { name = "DeLijn Parent" };

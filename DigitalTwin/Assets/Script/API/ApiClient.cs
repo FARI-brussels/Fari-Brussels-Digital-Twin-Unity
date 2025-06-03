@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.IO.Compression;
 using Google.Protobuf;
 using TransitRealtime;
+using System.Threading.Tasks;
 
 public class ApiClient
 {
@@ -31,14 +32,18 @@ public class ApiClient
         }
         else
         {
-            yield return FetchJsonData(url, callback);
+            yield return FetchJsonDataThreaded(url, callback);
         }
     }
-    private IEnumerator FetchJsonData<T>(string url, Action<T> callback)
+    private IEnumerator FetchJsonDataThreaded<T>(string url, Action<T> callback)
     {
+        string jsonResponse = null;
+        bool requestCompleted = false;
+        bool requestSuccess = false;
+
+        // Phase 1: Téléchargement du JSON (sur le thread principal)
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-
             if (!string.IsNullOrEmpty(apiKey))
             {
                 request.SetRequestHeader("Authorization", "Bearer " + apiKey);
@@ -50,29 +55,62 @@ public class ApiClient
             {
                 Debug.LogError($"API Error: {request.error}");
                 Debug.LogError($"Response: {request.downloadHandler.text}");
-                callback(default);// Return null in case of error
+                callback(default);
+                yield break;
             }
             else
             {
-                try
-                {
-                    string jsonResponse = request.downloadHandler.text;
-                    JsonSerializerSettings settings = new JsonSerializerSettings
-                    {
-                        Converters = new List<JsonConverter> { new GeoGeometryConverter() }
-                    };
-                    T data = JsonConvert.DeserializeObject<T>(jsonResponse);
-                    Debug.Log("Hello");
-                    callback(data);
-
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Erreur de parsing JSON: {e.Message}");
-                    Debug.LogError($"Stack trace: {e.StackTrace}");
-                    callback(default);
-                }
+                jsonResponse = request.downloadHandler.text;
+                requestSuccess = true;
             }
+        }
+
+        if (!requestSuccess)
+        {
+            callback(default);
+            yield break;
+        }
+
+        // Phase 2: Désérialisation dans un thread séparé
+        T deserializedData = default(T);
+        bool deserializationCompleted = false;
+        bool deserializationSuccess = false;
+
+        // Lancer la désérialisation dans un thread séparé
+        Task.Run(() =>
+        {
+            try
+            {
+                JsonSerializerSettings settings = new JsonSerializerSettings
+                {
+                    Converters = new List<JsonConverter> { new GeoGeometryConverter() }
+                };
+                deserializedData = JsonConvert.DeserializeObject<T>(jsonResponse, settings);
+                deserializationSuccess = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Erreur de parsing JSON: {e.Message}");
+                Debug.LogError($"Stack trace: {e.StackTrace}");
+                deserializationSuccess = false;
+            }
+            finally
+            {
+                deserializationCompleted = true;
+            }
+        });
+
+        // Attendre que la désérialisation soit terminée
+        yield return new WaitUntil(() => deserializationCompleted);
+
+        // Callback avec les données (sur le thread principal)
+        if (deserializationSuccess)
+        {
+            callback(deserializedData);
+        }
+        else
+        {
+            callback(default);
         }
     }
 

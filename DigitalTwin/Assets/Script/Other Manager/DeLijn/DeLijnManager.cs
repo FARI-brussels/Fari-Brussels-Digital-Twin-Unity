@@ -357,7 +357,6 @@ public class DeLijnManager : MonoBehaviour
 
     public async Task<JsonCollection<TFeature>> LoadGeoJsonDataAsync<TFeature>(string geoJsonFilePath)
     {
-        Debug.Log(geoJsonFilePath);
         TextAsset jsonContentAsset = Resources.Load<TextAsset>(geoJsonFilePath);
         if (jsonContentAsset == null)
         {

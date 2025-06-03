@@ -84,8 +84,6 @@ public class TrafficTwinManager : MonoBehaviour
         InitSceneGameObject();
 
         StartSimulation();
-
-   
     }
 
 
@@ -123,7 +121,7 @@ public class TrafficTwinManager : MonoBehaviour
         BackgroundLoadData();
     }
 
-    private async void BackgroundLoadData()
+    /*private async void BackgroundLoadData()
     {
         TextAsset jsonContentAsset = Resources.Load<TextAsset>(shapesPath_0_3600_w_rw);
         string jsonContent = jsonContentAsset.text;
@@ -141,7 +139,7 @@ public class TrafficTwinManager : MonoBehaviour
         jsonContent = jsonContentAsset.text;
         await LoadAllEdgesDataAsync(jsonContent, geoJsonShapes_3600_7200_woutrw, linesParent_density_3600_7200_woutrw, linesParent_speed_3600_7200_woutrw);
 
-    }
+    }*/
 
     public async Task LoadAllEdgesDataAsync(string jsonContent, JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> data, GameObject linesParentsDensity, GameObject linesParentsSpeed)
     {
@@ -160,6 +158,29 @@ public class TrafficTwinManager : MonoBehaviour
                 await Task.Yield(); // Pour éviter de bloquer l'UI frame par frame
             }
         }
+    }
+    
+    private async void BackgroundLoadData()
+    {
+        // Créer toutes les tâches en parallèle
+        var tasks = new List<Task>
+    {
+        LoadDataSet(shapesPath_0_3600_w_rw, geoJsonShapes_0_3600_wrw, linesParent_density_0_3600_wrw, linesParent_speed_0_3600_wrw),
+        LoadDataSet(shapesPath_3600_7200_w_rw, geoJsonShapes_3600_7200_wrw, linesParent_density_3600_7200_wrw, linesParent_speed_3600_7200_wrw),
+        LoadDataSet(shapesPath_0_3600_wout_rw, geoJsonShapes_0_3600_woutrw, linesParent_density_0_3600_woutrw, linesParent_speed_0_3600_woutrw),
+        LoadDataSet(shapesPath_3600_7200_wout_rw, geoJsonShapes_3600_7200_woutrw, linesParent_density_3600_7200_woutrw, linesParent_speed_3600_7200_woutrw)
+    };
+
+        // Attendre que toutes les tâches soient terminées
+        await Task.WhenAll(tasks);
+    }
+
+    // Méthode helper pour éviter la duplication de code
+    private async Task LoadDataSet(string shapesPath, JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes, GameObject linesParentDensity, GameObject linesParentSpeed)
+    {
+        TextAsset jsonContentAsset = Resources.Load<TextAsset>(shapesPath);
+        string jsonContent = jsonContentAsset.text;
+        await LoadAllEdgesDataAsync(jsonContent, geoJsonShapes, linesParentDensity, linesParentSpeed);
     }
     private void DrawLine(JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString> feature, GameObject linesParent, bool is_density)
     {

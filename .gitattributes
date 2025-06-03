@@ -1,3 +1,7 @@
 DigitalTwin/Assets/Resources/Data/GeoJSON/DeLijn/shapes.json filter=lfs diff=lfs merge=lfs -text
 DigitalTwin/Assets/Resources/Data/GeoJSON/DeLijn/trips.json filter=lfs diff=lfs merge=lfs -text
 DigitalTwin/Assets/Resources/Data/GTFS/DeLijn/gtfs.zip filter=lfs diff=lfs merge=lfs -text
+ServerExt/geoJson/routes.json filter=lfs diff=lfs merge=lfs -text
+ServerExt/geoJson/trips.json filter=lfs diff=lfs merge=lfs -text
+ServerExt/geoJson/shapes.json filter=lfs diff=lfs merge=lfs -text
+ServerExt/geoJson/stops.json filter=lfs diff=lfs merge=lfs -text

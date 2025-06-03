@@ -36,9 +36,6 @@ public class GeneralManager : MonoBehaviour
     IEnumerator BackgroundProcess()
     {
         yield return StartCoroutine(WaitForCesiumLoad());
-
-        MeshFilter[] meshFilters = FindObjectsOfType<MeshFilter>();
-        Debug.Log($"Number of mesh : {meshFilters.Length}");
     }
 
     IEnumerator WaitForCesiumLoad()
@@ -85,7 +82,7 @@ public class GeneralManager : MonoBehaviour
                     {
                         
                         successfulHits++;
-                        Debug.DrawRay(origin, direction * hit.distance, Color.green, 1f);
+                        Debug.DrawRay(origin, direction * hit.distance, Color.blue, 10f);
                         Debug.Log("Type de collider = : " + hit.collider);
                         Debug.Log($"Hit sur {hit.collider.gameObject.name} à une distance de {hit.distance}");
                     }

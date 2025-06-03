@@ -340,7 +340,7 @@ public class StibManager : MonoBehaviour
         // Gestion du cas où la distance entre `startPoint` et `endPoint` est trop courte
         if (Vector3.Distance(startPoint, endPoint) < 0.1f)
         {
-            return new List<Vector3> { startPoint, endPoint };
+            return new List<Vector3> {startPoint};
         }
 
 

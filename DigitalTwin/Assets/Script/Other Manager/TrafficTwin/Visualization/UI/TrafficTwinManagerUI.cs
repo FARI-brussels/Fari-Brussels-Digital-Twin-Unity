@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using TMPro; // Pour TextMeshPro si vous l'utilisez
 using System;
-
+#if false
 public class TrafficTwinManagerUI : MonoBehaviour
 {
     private bool is_mesh = true;
@@ -219,3 +219,4 @@ public class TrafficTwinManagerUI : MonoBehaviour
         UpdateButtonColors(); // Initialiser aussi les couleurs des boutons
     }
 }
+#endif

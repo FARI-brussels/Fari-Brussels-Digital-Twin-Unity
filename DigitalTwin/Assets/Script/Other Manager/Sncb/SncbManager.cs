@@ -6,7 +6,7 @@ using TransitRealtime;
 using Newtonsoft.Json;
 using Google.Protobuf;
 using CesiumForUnity;
-
+#if false
 public class SncbManager : MonoBehaviour
 {
 
@@ -508,4 +508,4 @@ public class SncbManager : MonoBehaviour
     
 
 }
-
+#endif

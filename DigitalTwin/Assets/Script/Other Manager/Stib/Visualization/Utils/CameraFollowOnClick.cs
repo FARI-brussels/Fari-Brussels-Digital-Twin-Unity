@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 public class CameraFollowOnClickStib : MonoBehaviour
 {
@@ -19,17 +20,18 @@ public class CameraFollowOnClickStib : MonoBehaviour
     public TextMeshProUGUI infoText;  // UI text to display target information.
 
     // Stores vehicle and terminus information for the selected object.
-    private JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> feature;
-    private JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> terminus;
+    private JsonFeature<GeoGeometryPoint> feature;
+    private JsonFeature<GeoGeometryPoint> terminus;
     private StibManager stibManager;
 
 
     /// Initializes the object with data about the vehicle position and its terminus.
-    public void Initialize(JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> vecFeature, JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> lineTerminus)
+    public void Initialize(JsonFeature<GeoGeometryPoint> vecFeature, JsonFeature< GeoGeometryPoint> lineTerminus)
     {
         feature = vecFeature;
         terminus = lineTerminus;
     }
+
 
     private void Start()
     {
@@ -87,16 +89,16 @@ public class CameraFollowOnClickStib : MonoBehaviour
     {
         if (target != null && feature != null && terminus != null)
         {
-            List<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>> stopsBeforePoint = stibManager.FindTrajectory(feature.properties.lineId, feature.properties.direction - 1, feature.properties.pointId);
+            List<JsonFeature<GeoGeometryPoint>> stopsBeforePoint = stibManager.FindTrajectory(feature.properties["lineId"].Value<string>(), feature.properties["direction"].Value<int>() - 1, feature.properties["pointId"].Value<int>());
 
-            infoText.text = $"Vehicle: {feature.properties.lineId}\nTerminus: {terminus.properties.stop_name}\n" +
+            infoText.text = $"Vehicle: {feature.properties["lineId"].Value<string>()}\nTerminus: {terminus.properties["stop_name"].Value<string>()}\n" +
                 $"Last coordinates : \n" +
                 $"        Latitude : {feature.geometry.coordinates[1]}\n" +
                 $"        Longitude : {feature.geometry.coordinates[0]}" +
-                $"\nDistance travel from the beginning : {feature.properties.distance * 0.611} m" +
-                $"\nLast measure : {DateTimeOffset.FromUnixTimeSeconds((long)feature.properties.timestamp).DateTime.ToString("yyyy-MM-dd HH:mm:ss")}" +
+                $"\nDistance travel from the beginning : {feature.properties["distance"].Value<double>() * 0.611} m" +
+                $"\nLast measure : {DateTimeOffset.FromUnixTimeSeconds((long)feature.properties["timestamp"].Value<double>()).DateTime.ToString("yyyy-MM-dd HH:mm:ss")}" +
                 $"\n\nTrajectory:\n" +
-                $"{string.Join(" --> ", stopsBeforePoint.Select(stop => stop.properties.stop_name))}";
+                $"{string.Join(" --> ", stopsBeforePoint.Select(stop => stop.properties["stop_name"].Value<string>()))}";
         }
         else
         {

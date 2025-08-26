@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-
+#if false
 public class ShowInfoOnHoverSncb : MonoBehaviour
 {
     //Store initial scale
@@ -97,3 +97,4 @@ public class ShowInfoOnHoverSncb : MonoBehaviour
    
 
 }
+#endif

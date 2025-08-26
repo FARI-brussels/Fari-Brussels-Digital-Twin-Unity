@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Newtonsoft.Json.Linq;
 
 public class ShowStopInfoOnHoverStib : MonoBehaviour
 {
@@ -11,14 +12,14 @@ public class ShowStopInfoOnHoverStib : MonoBehaviour
     private TextMeshPro textMesh;
     private Camera mainCamera;
 
-    private JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> feature;
+    private JsonFeature< GeoGeometryPoint> feature;
     private Color textColor;
 
 
-    public void Initialize(JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> stopFeature)
+    public void Initialize(JsonFeature< GeoGeometryPoint> stopFeature)
     {
         feature = stopFeature;
-        if (stopFeature.properties.route_short_name == "1" || stopFeature.properties.route_short_name == "2" || stopFeature.properties.route_short_name == "5" || stopFeature.properties.route_short_name == "6")
+        if (stopFeature.properties["route_short_name"].Value<string>() == "1" || stopFeature.properties["route_short_name"].Value<string>() == "2" || stopFeature.properties["route_short_name"].Value<string>() == "5" || stopFeature.properties["route_short_name"].Value<string>() == "6")
             textColor = Color.white;
         else
             textColor = Color.black;
@@ -34,7 +35,7 @@ public class ShowStopInfoOnHoverStib : MonoBehaviour
         textObject.transform.localPosition = new Vector3(0, -0.07f, 0);
 
         textMesh = textObject.AddComponent<TextMeshPro>();
-        textMesh.text = "Stops : " + feature.properties.route_short_name + " -> " + feature.properties.stop_name;
+        textMesh.text = "Stops : " + feature.properties["route_short_name"].Value<string>() + " -> " + feature.properties["stop_name"].Value<string>();
         textMesh.fontSize = 30;
         textMesh.color = textColor;
         textMesh.alignment = TextAlignmentOptions.Center;

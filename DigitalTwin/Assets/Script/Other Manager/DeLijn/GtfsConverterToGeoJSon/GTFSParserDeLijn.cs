@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
-
+/*
 public class GTFSParserDeLijn
 {
     public JsonCollection<JsonFeature<DeLijnShapeProperties, GeoGeometryLineString>> ParseShapes(string csvContent)
@@ -166,4 +166,4 @@ public class GTFSParserDeLijn
     }
 
 
-}
+}*/

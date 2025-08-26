@@ -10,10 +10,10 @@ public class GeneralManager : MonoBehaviour
 {
     public Cesium3DTileset tileset;
     public GameObject buildings;
-    public TrafficTwinManager trafficTwinManager;
+    //public TrafficTwinManager trafficTwinManager;
     public StibManager stibManager;
-    public SncbManager sncbManager;
-    public DeLijnManager deLijnManager;
+    //public SncbManager sncbManager;
+    //public DeLijnManager deLijnManager;
    
 
     private WmsManager wmsManager;
@@ -135,10 +135,10 @@ public class GeneralManager : MonoBehaviour
 
     private void LoadAllManager()
     {
-        trafficTwinManager.InitTrafficTwin();
+        //trafficTwinManager.InitTrafficTwin();
         stibManager.InitStib();
-        sncbManager.InitSncb();
-        deLijnManager.InitDeLijn();
+        //sncbManager.InitSncb();
+        //deLijnManager.InitDeLijn();
 
         SetActiveByName("Canvas Simulation", false);
         SetActiveByName("Canvas Vehicle", false);

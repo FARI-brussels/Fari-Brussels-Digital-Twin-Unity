@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-
+#if false
 public class ShowInfoOnHover : MonoBehaviour
 {
     //Store initial scale
@@ -85,3 +85,4 @@ public class ShowInfoOnHover : MonoBehaviour
 
 
 }
+#endif

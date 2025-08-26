@@ -7,10 +7,10 @@ public class ShowInfoOnClickStib : MonoBehaviour
     private CameraFollowOnClickStib cameraFollow;
 
     // Vehicle variable 
-    private JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> feature;
-    private JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> terminus;
+    private JsonFeature<GeoGeometryPoint> feature;
+    private JsonFeature<GeoGeometryPoint> terminus;
 
-    public void Initialize(JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> vecFeature, JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> lineTerminus)
+    public void Initialize(JsonFeature<GeoGeometryPoint> vecFeature, JsonFeature< GeoGeometryPoint> lineTerminus)
     {
         //Vehicle feature
         feature = vecFeature;

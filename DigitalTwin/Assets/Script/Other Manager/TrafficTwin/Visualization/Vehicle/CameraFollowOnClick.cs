@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if false
 
 public class CameraFollowOnClick : MonoBehaviour
 {
@@ -89,3 +90,4 @@ public class CameraFollowOnClick : MonoBehaviour
                         $"<b>Reroute ? :</b> {_vehicleTripInfo.rerouteNo}";
     }
 }
+#endif

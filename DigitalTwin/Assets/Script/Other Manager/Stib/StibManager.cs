@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using CesiumForUnity;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 public class StibManager : MonoBehaviour
 {
@@ -29,14 +30,14 @@ public class StibManager : MonoBehaviour
     [SerializeField] private string apiUrlShapes = "https://api.mobilitytwin.brussels/stib/segments";
     [SerializeField] private string apiUrlStops = "https://api.mobilitytwin.brussels/stib/stops";
     [SerializeField] private float refreshInterval = 5f;
-    private ApiClient apiClient;
+    private ApiClientv2 apiClient;
 
     //Default Material for line renderer
     public Material defaultMaterialForLine;
 
     //Var to store the shapes & stops collection
-    private JsonCollection<JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString>> geoJsonDataShapes;
-    private JsonCollection<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>> geoJsonDataStops;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonDataShapes;
+    private JsonCollection<JsonFeature< GeoGeometryPoint>> geoJsonDataStops;
 
     //Data Storage
     private Dictionary<(string line_id, int direction), List<Vector3>> routesDictionary = new Dictionary<(string line_id, int direction), List<Vector3>>();
@@ -57,7 +58,7 @@ public class StibManager : MonoBehaviour
     {
         InitSceneGameObject();
         geoJsonCesiumSpawner.Initialize(georeference);
-        apiClient = new ApiClient(apiKey);
+        apiClient = new ApiClientv2(apiKey);
 
         StartCoroutine(InitializeNetworkSequence());
     }
@@ -79,8 +80,10 @@ public class StibManager : MonoBehaviour
         foreach (var feature in geoJsonDataShapes.features)
         {
             //Create a key with the line_id and the direction
-            var key = (feature.properties.line_id, feature.properties.direction);
-
+            var key = (
+                feature.properties["line_id"].Value<string>(),
+                feature.properties["direction"].Value<int>()
+            );
             //Check if the key is already in the dict
             if (!routesDictionary.ContainsKey(key))
             {
@@ -99,7 +102,7 @@ public class StibManager : MonoBehaviour
 
                 //Convert to Unity Coodinate System
                 Vector3 position = geoJsonCesiumSpawner.GetCesiumPosition(coord[0], coord[1]);
-                float unityY = IsMetro(feature.properties.line_id) ? position .y - 400 : position.y;
+                float unityY = IsMetro(feature.properties["line_id"]?.ToString()) ? position .y - 400 : position.y;
                 Vector3 positionUcsStop = new Vector3(position.x, unityY, position.z);
                 routesDictionary[key].Add(positionUcsStop);
 
@@ -126,14 +129,14 @@ public class StibManager : MonoBehaviour
         while (true)
         {
             // Call API
-            yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint>>>(apiUrl, GetStibVehiclePosition));
+            yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<GeoGeometryPoint>>>(apiUrl, GetStibVehiclePosition,ApiDataType.Json));
 
             // Wait x sec
             yield return new WaitForSeconds(refreshInterval);
         }
 
     }
-    private void GetStibVehiclePosition(JsonCollection<JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint>> data)
+    private void GetStibVehiclePosition(JsonCollection<JsonFeature<GeoGeometryPoint>> data)
     {
         // Check if data is null
         if (data == null)
@@ -143,19 +146,19 @@ public class StibManager : MonoBehaviour
         }
         //int count = 0;
         // Iterate through each vehicle position data point
-        foreach (JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> feature in data.features)
+        foreach (JsonFeature< GeoGeometryPoint> feature in data.features)
         {
-            JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> terminus = FindTerminus(feature.properties.lineId, feature.properties.direction - 1);
+            JsonFeature<GeoGeometryPoint> terminus = FindTerminus(feature.properties["lineId"].Value<string>(), feature.properties["direction"].Value<int>() - 1);
 
             // Convert the vehicle's GPS position into Unity's coordinate system
             Vector3 newPositionUcsVec = FindUcsPosition(
-                feature.properties.lineId,
-                feature.properties.direction,
-                feature.properties.pointId,
-                feature.properties.distanceFromPoint
+                feature.properties["lineId"].Value<string>(),
+                feature.properties["direction"].Value<int>(),
+                feature.properties["pointId"].Value<int>(),
+                feature.properties["distanceFromPoint"].Value<int>()
             );
 
-            Vector3 targetDirection = NextPoint(feature.properties.lineId, feature.properties.direction, newPositionUcsVec);
+            Vector3 targetDirection = NextPoint(feature.properties["lineId"].Value<string>(), feature.properties["direction"].Value<int>(), newPositionUcsVec);
 
             // Check if the vehicle already exists in the dictionary
             if (vehicles.ContainsKey(feature.id))
@@ -163,8 +166,8 @@ public class StibManager : MonoBehaviour
                 // Move the existing vehicle to the new position
                 MoveVehicle(
                     feature.id,
-                    feature.properties.lineId,
-                    feature.properties.direction,
+                    feature.properties["lineId"].Value<string>(),
+                    feature.properties["direction"].Value<int>(),
                     newPositionUcsVec,
                     feature.geometry.coordinates
                 );
@@ -174,8 +177,8 @@ public class StibManager : MonoBehaviour
                 // Create a new vehicle marker in Unity
                 GameObject newVehicle = CreateMarkeurVehicle(
                     newPositionUcsVec,
-                    feature.properties.lineId,
-                    feature.properties.direction,
+                    feature.properties["lineId"].Value<string>(),
+                    feature.properties["direction"].Value<int>(),
                     feature,
                     terminus,
                     targetDirection
@@ -193,7 +196,7 @@ public class StibManager : MonoBehaviour
         }
     }
 
-    private GameObject CreateMarkeurVehicle(Vector3 position, string line_id, int direction, JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> feature, JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> terminus, Vector3 targetDirection)
+    private GameObject CreateMarkeurVehicle(Vector3 position, string line_id, int direction, JsonFeature<GeoGeometryPoint> feature, JsonFeature<GeoGeometryPoint> terminus, Vector3 targetDirection)
     {
 
         //Instantiate Stib Vehicle
@@ -419,10 +422,10 @@ public class StibManager : MonoBehaviour
         }
 
         //Find the correct shapes for the vehicule in a specific position
-        JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString> relevantShape = geoJsonDataShapes.features.Find(
-            s => s.properties.line_id == line_id &&
-                 s.properties.direction == direction &&
-                 s.properties.start == start
+        JsonFeature<GeoGeometryLineString> relevantShape = geoJsonDataShapes.features.Find(
+            s => s.properties["line_id"].Value<string>() == line_id &&
+                 s.properties["direction"].Value<int>() == direction &&
+                 s.properties["start"].Value<int>() == start
         );
 
         //Check if the relevant Shape is found
@@ -438,6 +441,7 @@ public class StibManager : MonoBehaviour
             //Function to calculate the target point
             return CalculateTargetPoint(relevantShape, distanceFromPoint);
         }
+        
         catch (Exception e)
         {
             Debug.LogError($"Target point calculation error, message : {e.Message}");
@@ -448,14 +452,14 @@ public class StibManager : MonoBehaviour
         }
     }
 
-    private Vector3 CalculateTargetPoint(JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString> shape, int distanceFromPoint)
+    private Vector3 CalculateTargetPoint(JsonFeature< GeoGeometryLineString> shape, int distanceFromPoint)
     {
         // Convert every data from GPS to UCS
         List<Vector3> ucsWayPoints = new List<Vector3>();
         foreach (var coordinate in shape.geometry.coordinates)
         {
             Vector3 position = geoJsonCesiumSpawner.GetCesiumPosition(coordinate[0], coordinate[1]);
-            float unityY = IsMetro(shape.properties.line_id) ? position.y - 400 : position.y;
+            float unityY = IsMetro(shape.properties["line_id"].Value<string>()) ? position.y - 400 : position.y;
             return new Vector3(position.x, unityY, position.z);
         }
 
@@ -486,10 +490,10 @@ public class StibManager : MonoBehaviour
         float distanceToTravel = 0f;
 
         //Is begining check 
-        if (shape.properties.distance > 0)
+        if (shape.properties["distance"].Value<int>() > 0)
         {
             //Calculate the distance to travel between start and target
-            float percentComplete = Mathf.Clamp01((float)distanceFromPoint / (float)shape.properties.distance);
+            float percentComplete = Mathf.Clamp01((float)distanceFromPoint / (float)shape.properties["distance"].Value<int>());
             distanceToTravel = percentComplete * totalLength;
         }
         else
@@ -531,11 +535,11 @@ public class StibManager : MonoBehaviour
         Debug.LogWarning("La distance calculée dépasse la longueur du chemin");
         return ucsWayPoints[ucsWayPoints.Count - 1];
     }
-    private JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> FindTerminus(string line_id, int direction)
+    private JsonFeature<GeoGeometryPoint> FindTerminus(string line_id, int direction)
     {
 
-        List<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>> relevantStopsList = geoJsonDataStops.features
-        .FindAll(s => s.properties.route_short_name == line_id && s.properties.direction == direction);
+        List<JsonFeature<GeoGeometryPoint>> relevantStopsList = geoJsonDataStops.features
+        .FindAll(s => s.properties["route_short_name"].Value<string>() == line_id && s.properties["direction"].Value<int>() == direction);
         return relevantStopsList[relevantStopsList.Count - 1];
 
     }
@@ -546,20 +550,22 @@ public class StibManager : MonoBehaviour
         bool shapesLoaded = false; // Flag to check if shapes data has been loaded
 
         // Start coroutine to fetch stop data from API
-        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>>>(
+        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<GeoGeometryPoint>>>(
             apiUrlStops, (data) => {
                 StibStop(data);  // Process stop data
                 stopsLoaded = true;  // Mark stops as loaded
             }
+            ,ApiDataType.Json
         ));
 
-        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString>>>(
+        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<GeoGeometryLineString>>>(
                 apiUrlShapes, (data) =>
                 {
                     geoJsonDataShapes = data;  // Store the fetched shape data
                     StibShapes(data);
                     shapesLoaded = true;  // Mark shapes as loaded
                 }
+                ,ApiDataType.Json
         ));
 
         /*stibShapesPrefab = Resources.Load<GameObject>(prefabResourcePath);
@@ -602,7 +608,7 @@ public class StibManager : MonoBehaviour
         }
     }
 
-    private void StibStop(JsonCollection<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>> data)
+    private void StibStop(JsonCollection<JsonFeature<GeoGeometryPoint>> data)
     {
         geoJsonDataStops = data;
 
@@ -612,16 +618,16 @@ public class StibManager : MonoBehaviour
             {
                 var stop = feature.properties;  // Extract stop properties
 
-                Vector3 positionUcsStop = geoJsonCesiumSpawner.GetCesiumPosition(stop.stop_lon, stop.stop_lat);
-                float unityY = IsMetro(stop.route_short_name) ? positionUcsStop.y - 400 : positionUcsStop.y;
+                Vector3 positionUcsStop = geoJsonCesiumSpawner.GetCesiumPosition(stop["stop_lon"].Value<double>(), stop["stop_lat"].Value<double>());
+                float unityY = IsMetro(stop["route_short_name"].Value<string>()) ? positionUcsStop.y - 400 : positionUcsStop.y;
                 positionUcsStop = new Vector3(positionUcsStop.x, unityY, positionUcsStop.z);
 
                 // Create a marker for the stop in Unity
-                CreateMarkeurStop(positionUcsStop, stop.stop_name, stop.stop_id, stop.route_short_name, feature);
+                CreateMarkeurStop(positionUcsStop, stop["stop_name"].Value<string>(), stop["stop_id"].Value<int>(), stop["route_short_name"].Value<string>(), feature);
             }
         }
     }
-    private void CreateMarkeurStop(Vector3 position, String stop_name, int stop_id, string route_short_name, JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> feature)
+    private void CreateMarkeurStop(Vector3 position, String stop_name, int stop_id, string route_short_name, JsonFeature<GeoGeometryPoint> feature)
     {
 
         //Instantiate Stib Stop
@@ -648,7 +654,7 @@ public class StibManager : MonoBehaviour
         hoverScript.Initialize(feature);
     }
 
-    private void StibShapes(JsonCollection<JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString>> data)
+    private void StibShapes(JsonCollection<JsonFeature<GeoGeometryLineString>> data)
     {
         geoJsonDataShapes = data;  // Store the shape data
 
@@ -656,7 +662,7 @@ public class StibManager : MonoBehaviour
         {
             foreach (var feature in geoJsonDataShapes.features)
             {
-                if (IsMetro(feature.properties.line_id))
+                if (IsMetro(feature.properties["line_id"].Value<string>() ))
                 {
                     DrawLine(feature);
                 }
@@ -664,7 +670,7 @@ public class StibManager : MonoBehaviour
         }
     }
 
-    private void StibShapes2(JsonCollection<JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString>> data)
+    private void StibShapes2(JsonCollection<JsonFeature<GeoGeometryLineString>> data)
     {
         geoJsonDataShapes = data;  // Store the shape data
         if (geoJsonDataShapes == null) return;
@@ -677,7 +683,7 @@ public class StibManager : MonoBehaviour
         {
             // Déterminer la couleur une seule fois
             Color lineColor = Color.white;
-            if (ColorUtility.TryParseHtmlString(feature.properties.color, out Color parsedColor))
+            if (ColorUtility.TryParseHtmlString(feature.properties["color"].Value<string>(), out Color parsedColor))
             {
                 lineColor = parsedColor;
             }
@@ -690,7 +696,7 @@ public class StibManager : MonoBehaviour
             {
                 double[] coord = feature.geometry.coordinates[i];
                 Vector3 positionCesium = geoJsonCesiumSpawner.GetCesiumPosition(coord[0], coord[1]);
-                float unityY = IsMetro(feature.properties.line_id) ? positionCesium.y - 400 : positionCesium.y;
+                float unityY = IsMetro(feature.properties["line_id"].Value<string>()) ? positionCesium.y - 400 : positionCesium.y;
                 positions[i] = new Vector3(positionCesium.x, unityY, positionCesium.z);
             }
 
@@ -700,7 +706,7 @@ public class StibManager : MonoBehaviour
                 Id = feature.id,
                 Positions = positions,
                 Color = lineColor,
-                IsMetro = IsMetro(feature.properties.line_id)
+                IsMetro = IsMetro(feature.properties["line_id"].Value<string>())
             });
         }
 
@@ -764,7 +770,7 @@ public class StibManager : MonoBehaviour
         public bool IsMetro { get; set; }
     }
 
-    private void DrawLine(JsonFeature<StibGeoPropertiesShapes, GeoGeometryLineString> feature)
+    private void DrawLine(JsonFeature<GeoGeometryLineString> feature)
     {
         //Instantiate Stib Stop
         GameObject lineObject = new GameObject("Line_" + feature.id);
@@ -778,7 +784,7 @@ public class StibManager : MonoBehaviour
         lineRenderer.endWidth = 3f;
         lineRenderer.material = defaultMaterialForLine;
         Color lineColor = Color.white;
-        if (ColorUtility.TryParseHtmlString(feature.properties.color, out Color parsedColor))
+        if (ColorUtility.TryParseHtmlString(feature.properties["color"].Value<string>(), out Color parsedColor))
         {
             lineColor = parsedColor;
         }
@@ -790,7 +796,7 @@ public class StibManager : MonoBehaviour
         {
             double[] coord = feature.geometry.coordinates[i];
             Vector3 positionCesium = geoJsonCesiumSpawner.GetCesiumPosition(coord[0], coord[1]);
-            float unityY = IsMetro(feature.properties.line_id) ? positionCesium.y - 400 : positionCesium.y;
+            float unityY = IsMetro(feature.properties["line_id"].Value<string>()) ? positionCesium.y - 400 : positionCesium.y;
             positionCesium = new Vector3(positionCesium.x, unityY, positionCesium.z);
             lineRenderer.SetPosition(i, positionCesium);
         }
@@ -816,6 +822,9 @@ public class StibManager : MonoBehaviour
         vehiclesParent = new GameObject { name = "Vehicles" };
         vehiclesParent.transform.parent = stibParent.transform;
     }
+
+
+    // Non USE
     private void SaveAsPrefab(GameObject objectToSave)
     {
         #if UNITY_EDITOR
@@ -835,12 +844,13 @@ public class StibManager : MonoBehaviour
         Debug.LogWarning("La sauvegarde des prefabs ne fonctionne que dans l'éditeur Unity.");
         #endif
     }
-    public List<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>> FindTrajectory(string line_id, int direction, int point_id)
+    
+    public List<JsonFeature< GeoGeometryPoint>> FindTrajectory(string line_id, int direction, int point_id)
     {
 
-        List<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>> relevantStopsList = geoJsonDataStops.features.FindAll(s => s.properties.route_short_name == line_id && s.properties.direction == direction);
+        List<JsonFeature<GeoGeometryPoint>> relevantStopsList = geoJsonDataStops.features.FindAll(s => s.properties["route_short_name"].Value<string>() == line_id && s.properties["direction"].Value<int>() == direction);
 
-        int pointIndex = relevantStopsList.FindIndex(s => s.properties.stop_id == point_id);
+        int pointIndex = relevantStopsList.FindIndex(s => s.properties["stop_id"].Value<int>() == point_id);
 
         if (pointIndex != -1)
         {
@@ -848,8 +858,7 @@ public class StibManager : MonoBehaviour
         }
         else
         {
-            return new List<JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint>>();
+            return new List<JsonFeature< GeoGeometryPoint>>();
         }
     }
-
 }

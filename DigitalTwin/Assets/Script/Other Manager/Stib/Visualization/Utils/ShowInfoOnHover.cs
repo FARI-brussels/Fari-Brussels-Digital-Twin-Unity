@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Newtonsoft.Json.Linq;
 
 public class ShowInfoOnHoverStib : MonoBehaviour
 {
@@ -17,11 +18,11 @@ public class ShowInfoOnHoverStib : MonoBehaviour
     private Color textColor;
 
     //Vehicle variable 
-    private JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> feature;
-    private JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> terminus;
+    private JsonFeature<GeoGeometryPoint> feature;
+    private JsonFeature<GeoGeometryPoint> terminus;
 
     // **Constructor (not real one because it's not possible in MonoBehaviour
-    public void Initialize(JsonFeature<StibGeoPropertiesVehiclePostion, GeoGeometryPoint> vecFeature, JsonFeature<StibGeoPropertiesStops, GeoGeometryPoint> lineTerminus)
+    public void Initialize(JsonFeature<GeoGeometryPoint> vecFeature, JsonFeature<GeoGeometryPoint> lineTerminus)
     {
         //Vehicle feature
         feature = vecFeature;
@@ -29,7 +30,7 @@ public class ShowInfoOnHoverStib : MonoBehaviour
         terminus = lineTerminus;
 
         //Change text color if metro (Improve the visualization)
-        if (vecFeature.properties.lineId == "1" || vecFeature.properties.lineId == "2" || vecFeature.properties.lineId == "5" || vecFeature.properties.lineId == "6")
+        if (vecFeature.properties["lineId"].Value<string>() == "1" || vecFeature.properties["lineId"].Value<string>() == "2" || vecFeature.properties["lineId"].Value<string>() == "5" || vecFeature.properties["lineId"].Value<string>() == "6")
             textColor = Color.white;
         else
             textColor = Color.black;
@@ -49,7 +50,7 @@ public class ShowInfoOnHoverStib : MonoBehaviour
         //Configuration TextMeshPro
         textMesh = textObject.AddComponent<TextMeshPro>();
         //Number of the vehicle and it's teminus
-        textMesh.text = "Vehicule " + feature.properties.lineId + "-> " + terminus.properties.stop_name; 
+        textMesh.text = "Vehicule " + feature.properties["lineId"].Value<string>() + "-> " + terminus.properties["stop_name"].Value<string>(); 
         textMesh.fontSize = 30;
         textMesh.color = textColor;
         textMesh.alignment = TextAlignmentOptions.Center;

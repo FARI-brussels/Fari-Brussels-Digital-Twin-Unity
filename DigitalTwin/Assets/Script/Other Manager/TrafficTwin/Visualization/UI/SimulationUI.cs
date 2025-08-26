@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+#if false
 
 public class SimulationUI : MonoBehaviour
 {
@@ -91,3 +92,4 @@ public class SimulationUI : MonoBehaviour
         }
     }
 }
+#endif

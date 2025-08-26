@@ -2,6 +2,7 @@
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+#if false
 
 public class ShowInfoOnClickSncb : MonoBehaviour
 {
@@ -31,3 +32,4 @@ public class ShowInfoOnClickSncb : MonoBehaviour
         }
     }
 }
+#endif

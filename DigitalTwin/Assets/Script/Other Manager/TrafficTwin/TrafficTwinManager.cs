@@ -9,7 +9,7 @@ using System.Xml.Serialization;
 using System.Globalization;
 using CesiumForUnity;
 using System.Threading.Tasks;
-
+#if false
 public class TrafficTwinManager : MonoBehaviour
 {
     public static TrafficTwinManager Instance;
@@ -586,4 +586,4 @@ public class TrafficTwinManager : MonoBehaviour
 
 }
 
-
+#endif

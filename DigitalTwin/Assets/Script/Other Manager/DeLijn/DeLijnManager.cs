@@ -9,6 +9,7 @@ using Google.Protobuf;
 using CesiumForUnity;
 using System.Threading.Tasks;
 
+#if false
 public class DeLijnManager : MonoBehaviour
 {
     /*
@@ -31,6 +32,8 @@ public class DeLijnManager : MonoBehaviour
     [SerializeField] private float refreshInterval = 5f;
     private ApiClient apiClientDL;
     private ApiClient localApiClient;
+    private ApiClientv2 apiClientDLTest;
+
 
     //Location of the stops and shapes
     [Header("Shapes and Stops file Location")]
@@ -43,10 +46,9 @@ public class DeLijnManager : MonoBehaviour
     public Material defaultMaterialForLine;
 
     private string gtfsFilePath;
-    private GTFSParserDeLijn gtfsParser;
 
-    private JsonCollection<JsonFeature<DeLijnStopProperties, GeoGeometryPoint>> geoJsonStops;
-    private JsonCollection<JsonFeature<DeLijnShapeProperties, GeoGeometryLineString>> geoJsonShapes;
+    private JsonCollection<JsonFeature< GeoGeometryPoint>> geoJsonStops;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes;
 
     public Dictionary<string, (GameObject, List<double>)> vehicles = new Dictionary<string, (GameObject, List<double>)>();
     Dictionary<string, TripWrapper> tripsData = new Dictionary<string, TripWrapper>();
@@ -64,12 +66,13 @@ public class DeLijnManager : MonoBehaviour
     public CesiumGeoreference georeference;
     private GeoJsonCesiumSpawner geoJsonCesiumSpawner = new GeoJsonCesiumSpawner();
     public Cesium3DTileset tileset;
-
+    
     public void InitDeLijn()
     {
         InitSceneGameObject();
         geoJsonCesiumSpawner.Initialize(georeference);
         apiClientDL = new ApiClient(specialDLApiKey);
+        apiClientDLTest = new ApiClientv2(specialDLApiKey);
         localApiClient = new ApiClient();
         StartCoroutine(InitDeLijnNetwork());
     }
@@ -80,7 +83,7 @@ public class DeLijnManager : MonoBehaviour
         bool routesCompleted = false;
         bool tripsCompleted = false;
 
-        StartCoroutine(localApiClient.GetApiData<JsonCollection<JsonFeature<DeLijnStopProperties, GeoGeometryPoint>>>(
+        StartCoroutine(localApiClient.GetApiData<JsonCollection<JsonFeature< GeoGeometryPoint>>>(
             apiUrlInternStops, (data) => {
                 geoJsonStops = data;
                 if (geoJsonStops != null)
@@ -99,7 +102,7 @@ public class DeLijnManager : MonoBehaviour
         ));
 
 
-        StartCoroutine(localApiClient.GetApiData<JsonCollection<JsonFeature<DeLijnShapeProperties, GeoGeometryLineString>>>(
+        StartCoroutine(localApiClient.GetApiData<JsonCollection<JsonFeature< GeoGeometryLineString>>>(
             apiUrlInternShapes, (data) => {
                 geoJsonShapes = data;
                 shapesCompleted = true;
@@ -181,17 +184,18 @@ public class DeLijnManager : MonoBehaviour
         while (true)
         {
             // Call API
-            yield return StartCoroutine(LoadGTFS_RTData());
+            yield return StartCoroutine(LoadGTFS_RTDataTest());
 
             // Wait x sec
             yield return new WaitForSeconds(refreshInterval);
         }
 
     }
+
     private IEnumerator LoadGTFS_RTData()
     {
         bool isFinished = false;
-        var features = new List<JsonFeature<VehicleProperties, GeoGeometryPoint>>();
+        var features = new List<JsonFeature< GeoGeometryPoint>>();
 
         yield return apiClientDL.GetApiData(apiUrlGTFS_RT, (FeedMessage feed) =>
         {
@@ -226,7 +230,7 @@ public class DeLijnManager : MonoBehaviour
                         }
                         };
 
-                        var feature = new JsonFeature<VehicleProperties, GeoGeometryPoint>
+                        var feature = new JsonFeature< GeoGeometryPoint>
                         {
                             id = entity.Vehicle.Vehicle.Id,
                             type = "Feature",
@@ -239,13 +243,13 @@ public class DeLijnManager : MonoBehaviour
 
                 }
 
-                var vehiclePositionGeoJson = new JsonCollection<JsonFeature<VehicleProperties, GeoGeometryPoint>>
+                var vehiclePositionGeoJson = new JsonCollection<JsonFeature< GeoGeometryPoint>>
                 {
                     type = "FeatureCollection",
                     features = features
                 };
 
-                
+
 
                 foreach (var feature in vehiclePositionGeoJson.features)
                 {
@@ -256,7 +260,7 @@ public class DeLijnManager : MonoBehaviour
 
                         if (tripInfo != null)
                         {
-                            JsonFeature<DeLijnShapeProperties, GeoGeometryLineString> relevantShape = geoJsonShapes.features.Find(
+                            JsonFeature< GeoGeometryLineString> relevantShape = geoJsonShapes.features.Find(
                                s => s.properties.shape_id == tripInfo.shape_id
                             );
                             if (relevantShape != null)
@@ -273,7 +277,7 @@ public class DeLijnManager : MonoBehaviour
                                     Vector3 initPosition = vehicles[feature.properties.vehicle_id].Item1.transform.position;
 
                                     List<Vector3> path = FindPath(relevantShape, initPosition, newPositionUcsStop);
-                                    
+
 
                                     DelijnVehicleMover mover = vehicle.GetComponent<DelijnVehicleMover>();
                                     if (mover != null && path.Count > 0)
@@ -287,7 +291,7 @@ public class DeLijnManager : MonoBehaviour
                                 else
                                 {
                                     // Create a marker for the stop in Unity
-                                    GameObject newVehicle = CreateMarkeurVecPos(newPositionUcsStop, feature.properties.vehicle_id,tripInfo, targetDirection);
+                                    GameObject newVehicle = CreateMarkeurVecPos(newPositionUcsStop, feature.properties.vehicle_id, tripInfo, targetDirection);
                                     vehicles.Add($"{feature.properties.vehicle_id}",
                                         (newVehicle, new List<double>
                                             { feature.geometry.coordinates[0], feature.geometry.coordinates[1] }
@@ -298,7 +302,7 @@ public class DeLijnManager : MonoBehaviour
                             }
                         }
 
-                        
+
                     }
                 }
             }
@@ -312,6 +316,77 @@ public class DeLijnManager : MonoBehaviour
 
         yield return new WaitUntil(() => isFinished);
     }
+    private IEnumerator LoadGTFS_RTDataTest()
+    {
+        bool isFinished = false;
+
+        yield return apiClientDLTest.GetApiData(apiUrlGTFS_RT, (JsonCollection<JsonFeature< GeoGeometryPoint>> vehiclePositionGeoJson) =>
+         {
+             if (vehiclePositionGeoJson == null)
+             {
+                 Debug.LogError("Erreur lors de l'extraction GTFS-RT en JSON");
+                 return;
+             }
+
+            foreach (var feature in vehiclePositionGeoJson.features)
+            {
+                 if (feature.geometry.coordinates[1] >= 50.693 && feature.geometry.coordinates[1] <= 51.013 && feature.geometry.coordinates[0] >= 4.212 && feature.geometry.coordinates[0] <= 4.569)
+                 {
+
+                     TripInfoDL tripInfo = GetTripInfoById(feature.properties.trip_id, tripsData);
+
+                     if (tripInfo != null)
+                     {
+                         JsonFeature<GeoGeometryLineString> relevantShape = geoJsonShapes.features.Find(
+                            s => s.properties.shape_id == tripInfo.shape_id
+                         );
+                         if (relevantShape != null)
+                         {
+
+                             Vector3 newPositionUcsStop = geoJsonCesiumSpawner.GetCesiumPosition(feature.geometry.coordinates[0], feature.geometry.coordinates[1]);
+
+
+                             Vector3 targetDirection = NextPoint(relevantShape, newPositionUcsStop);
+
+                             if (vehicles.ContainsKey(feature.properties.vehicle_id))
+                             {
+                                 GameObject vehicle = vehicles[feature.properties.vehicle_id].Item1;
+                                 Vector3 initPosition = vehicles[feature.properties.vehicle_id].Item1.transform.position;
+
+                                 List<Vector3> path = FindPath(relevantShape, initPosition, newPositionUcsStop);
+
+
+                                 DelijnVehicleMover mover = vehicle.GetComponent<DelijnVehicleMover>();
+                                 if (mover != null && path.Count > 0)
+                                 {
+                                     //The refresh time = travel time
+                                     float travelTime = 20f;
+                                     mover.SetPath(path, travelTime);
+                                 }
+                                 vehicles[feature.properties.vehicle_id] = (vehicle, feature.geometry.coordinates);
+                             }
+                             else
+                             {
+                                 // Create a marker for the stop in Unity
+                                 GameObject newVehicle = CreateMarkeurVecPos(newPositionUcsStop, feature.properties.vehicle_id, tripInfo, targetDirection);
+                                 vehicles.Add($"{feature.properties.vehicle_id}",
+                                     (newVehicle, new List<double>
+                                         { feature.geometry.coordinates[0], feature.geometry.coordinates[1] }
+                                     )
+                                 );
+                             }
+
+                         }
+                     }
+
+
+                 }
+             }
+             isFinished = true;
+         }, ApiDataType.GTFS_RT);
+        yield return new WaitUntil(() => isFinished);
+    }
+
 
     public TripInfoDL GetTripInfoById(string tripId, Dictionary<string, TripWrapper> tripsData)
     {
@@ -426,7 +501,7 @@ public class DeLijnManager : MonoBehaviour
         });
     }
 
-    private void CreateMarkeurStop(Vector3 position, JsonFeature<DeLijnStopProperties, GeoGeometryPoint> feature)
+    private void CreateMarkeurStop(Vector3 position, JsonFeature< GeoGeometryPoint> feature)
     {
 
         GameObject vehicleGameObject = Instantiate(stopPrefab);
@@ -450,7 +525,7 @@ public class DeLijnManager : MonoBehaviour
     }
 
     //Function to drawn the stib network
-    private void DrawLine(JsonFeature<DeLijnShapeProperties, GeoGeometryLineString> feature)
+    private void DrawLine(JsonFeature< GeoGeometryLineString> feature)
     {
         //Instantiate Stib Stop
         GameObject lineObject = new GameObject("Line_" + feature.properties.shape_id);
@@ -494,7 +569,7 @@ public class DeLijnManager : MonoBehaviour
 
     }
 
-    public List<Vector3> FindPath(JsonFeature<DeLijnShapeProperties, GeoGeometryLineString> relevantShape, Vector3 startPoint, Vector3 endPoint)
+    public List<Vector3> FindPath(JsonFeature< GeoGeometryLineString> relevantShape, Vector3 startPoint, Vector3 endPoint)
     {
         List<Vector3> path = new List<Vector3>();
         Dictionary<string, List<Vector3>> routesDictionary = new Dictionary<string, List<Vector3>>();
@@ -538,7 +613,7 @@ public class DeLijnManager : MonoBehaviour
         return path;
     }
 
-    private Vector3 NextPoint(JsonFeature<DeLijnShapeProperties, GeoGeometryLineString> relevantShape, Vector3 position)
+    private Vector3 NextPoint(JsonFeature< GeoGeometryLineString> relevantShape, Vector3 position)
     {
         Dictionary<string, List<Vector3>> routesDictionary = new Dictionary<string, List<Vector3>>();
 
@@ -709,4 +784,4 @@ private IEnumerator LoadGTFS_RTData()
 }*/
 
 
-
+#endif

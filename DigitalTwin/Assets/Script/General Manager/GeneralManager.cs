@@ -10,27 +10,32 @@ public class GeneralManager : MonoBehaviour
 {
     public Cesium3DTileset tileset;
     public GameObject buildings;
-    //public TrafficTwinManager trafficTwinManager;
+    public TrafficTwinManager trafficTwinManager;
+    public TrafficTwinManagerv2 trafficTwinManagerv2;
     public StibManager stibManager;
-    //public SncbManager sncbManager;
-    //public DeLijnManager deLijnManager;
+    public SncbManager sncbManager;
+    public DeLijnManager deLijnManager;
    
 
     private WmsManager wmsManager;
     public CesiumWebMapServiceRasterOverlay wmsOverlay;
 
-    public string urlWmsUrbis = "https://geoservices-urbis.irisnet.be/geoserver/ows";
+    public string urlWmsUrbis = "https://geoservices-urbis.irisnet.be/geoserver/BaseMaps/ows";
     public string urlWmsBruMob = "https://data.mobility.brussels/geoserver/bm_public_transport/wms";
 
     private bool trafficIsActive = false;
+    private bool trafficIsActivev2 = false;
     private bool stibIsActive = false;
     private bool sncbIsActive = false;
     private bool delijnIsActive = false;
 
     void Start()
     {
-        StartCoroutine(BackgroundProcess());
+        LoadAllManager();
+        
+        //StartCoroutine(BackgroundProcess());
         wmsManager = new WmsManager(wmsOverlay);
+        wmsManager.SwitchWMS(urlWmsUrbis, "BaseMaps:UrbISFrenchLabeledColor");
     }
 
     IEnumerator BackgroundProcess()
@@ -135,30 +140,25 @@ public class GeneralManager : MonoBehaviour
 
     private void LoadAllManager()
     {
-        //trafficTwinManager.InitTrafficTwin();
+
         stibManager.InitStib();
-        //sncbManager.InitSncb();
-        //deLijnManager.InitDeLijn();
+        SetActiveByName("Stib Parent", false);
+        sncbManager.InitSncb();
+        SetActiveByName("Sncb Parent", false);
+        deLijnManager.InitDeLijn();
+        SetActiveByName("DeLijn Parent", false);
+        trafficTwinManager.InitTrafficTwin();
+        SetActiveByName("Traffic Twin parents", false);
+        trafficTwinManagerv2.InitTrafficTwinv2();
+        SetActiveByName("Traffic Twin v2 parents", false);
 
         SetActiveByName("Canvas Simulation", false);
         SetActiveByName("Canvas Vehicle", false);
-        SetActiveByName("Traffic Twin parents", false);
-
-        SetActiveByName("Stib Parent", false);
         SetActiveByName("CanvasStib", false);
-
-        SetActiveByName("Sncb Parent", false);
-        SetActiveByName("CanvasStib", false);
-
-        SetActiveByName("DeLijn Parent", false);
-        SetActiveByName("CanvasStib", false);
-
-        buildings.SetActive(false);
-
-
     }
-    private void SetActiveByName(string objectName, bool isActive)
+    public void SetActiveByName(string objectName, bool isActive)
     {
+        Debug.Log(objectName);
         GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
         GameObject obj = System.Array.Find(allObjects, obj => obj.name == objectName);
 
@@ -182,7 +182,7 @@ public class GeneralManager : MonoBehaviour
         SetActiveByName("Canvas Simulation", true);
         SetActiveByName("Canvas Vehicle", true);
         SetActiveByName("Traffic Twin parents", true);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
     public void HideTrafficManager()
     {
@@ -190,29 +190,47 @@ public class GeneralManager : MonoBehaviour
         SetActiveByName("Canvas Simulation", false);
         SetActiveByName("Canvas Vehicle", false);
         SetActiveByName("Traffic Twin parents", false);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
+
+    public void ShowTrafficManagerv2()
+    {
+        trafficIsActive = true;
+        SetActiveByName("Canvas Simulation", true);
+        SetActiveByName("Canvas Vehicle", true);
+        SetActiveByName("Traffic Twin v2 parents", true);
+        //UpdateOverlayState();
+    }
+    public void HideTrafficManagerv2()
+    {
+        trafficIsActivev2 = false;
+        SetActiveByName("Canvas Simulation", false);
+        SetActiveByName("Canvas Vehicle", false);
+        SetActiveByName("Traffic Twin v2 parents", false);
+        //UpdateOverlayState();
+    }
+
 
     public void ShowStibManager()
     {
         stibIsActive = true;
         SetActiveByName("Stib Parent", true);
         SetActiveByName("CanvasStib", true);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
     public void HideStibManager()
     {
         stibIsActive = false;
         SetActiveByName("Stib Parent", false);
         SetActiveByName("CanvasStib", false);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
     public void ShowSncbManager()
     {
         sncbIsActive = true;
         SetActiveByName("Sncb Parent", true);
         SetActiveByName("CanvasStib", true);
-        UpdateOverlayState();
+        //UpdateOverlayState();
 
     }
     public void HideSncbManager()
@@ -220,14 +238,14 @@ public class GeneralManager : MonoBehaviour
         sncbIsActive = false;
         SetActiveByName("Sncb Parent", false);
         SetActiveByName("CanvasStib", false);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
     public void ShowDeLijnManager()
     {
         delijnIsActive = true;
         SetActiveByName("DeLijn Parent", true);
         SetActiveByName("CanvasStib", true);
-        UpdateOverlayState();
+        //UpdateOverlayState();
 
     }
     public void HideDeLijnManager()
@@ -235,21 +253,21 @@ public class GeneralManager : MonoBehaviour
         delijnIsActive = false;
         SetActiveByName("DeLijn Parent", false);
         SetActiveByName("CanvasStib", false);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
 
     public void ShowBuildings()
     {
         buildings.SetActive(true);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
     public void HideBuildings()
     {
         buildings.SetActive(false);
-        UpdateOverlayState();
+        //UpdateOverlayState();
     }
 
-    private void UpdateOverlayState()
+    private void  UpdateOverlayState()
     {
         // Cas 1 & 2 : Aucun transport en commun => fond de carte Urbis
         if (!stibIsActive && !sncbIsActive && !delijnIsActive)

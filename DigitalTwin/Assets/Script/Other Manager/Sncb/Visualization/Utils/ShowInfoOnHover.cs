@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-#if false
+using Newtonsoft.Json.Linq;
+
 public class ShowInfoOnHoverSncb : MonoBehaviour
 {
     //Store initial scale
@@ -37,18 +38,23 @@ public class ShowInfoOnHoverSncb : MonoBehaviour
         //Configuration TextMeshPro
         textMesh = textObject.AddComponent<TextMeshPro>();
         //Number of the vehicle and it's teminus
-        if(_feature is JsonFeature<SncbGeoPropertiesVehiclePosition, IGeoGeometry> sncbFeatureVehicle)
+        if (_feature is JsonFeature<IGeoGeometry> feature)
         {
-            textObject.transform.localPosition = new Vector3(0, 1f, 0);
-            textMesh.text = "Vehicle to " + sncbFeatureVehicle.properties.trip_headsign;
-        }
-        else if (_feature is JsonFeature<SncbGeoPropertiesStops,IGeoGeometry> sncbFeatureStop)
-        {
-            textObject.transform.localPosition = new Vector3(0, -0.05f, 0);
-            textMesh.text = "Stop : " + sncbFeatureStop.properties.ptcarid;
+            if (feature.properties["trip_headsign"] != null)
+            {
+                // C’est un véhicule
+                textObject.transform.localPosition = new Vector3(0, 1f, 0);
+                textMesh.text = "Vehicle to " + feature.properties["trip_headsign"].Value<string>();
+            }
+            else if (feature.properties["ptcarid"] != null)
+            {
+                // C’est un arrêt
+                textObject.transform.localPosition = new Vector3(0, -0.05f, 0);
+                textMesh.text = "Stop : " + feature.properties["ptcarid"].Value<string>();
+            }
         }
 
-        
+
         textMesh.fontSize = 40;
         textMesh.color = textColor;
         textMesh.alignment = TextAlignmentOptions.Center;
@@ -97,4 +103,3 @@ public class ShowInfoOnHoverSncb : MonoBehaviour
    
 
 }
-#endif

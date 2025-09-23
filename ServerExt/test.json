@@ -1,0 +1,50 @@
+
+
+
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [51.1556168,4.446479]
+            },
+            "properties": {
+                "vehicle": {
+                    "trip": {
+                    "tripId": "1032_106_336_1AN1032-13_1261-7117DPO2611_1604_e97199339cfad5e0aeb71f2c7faa60f8f6116a14c2ee5d174a17213b78363ab4"
+                    },
+                    "position": {
+                    "latitude": 51.1556168,
+                    "longitude": 4.446479,
+                    "bearing": 85.76
+                    },
+                    "timestamp": "1756301768",
+                    "vehicle": {
+                    "id": "10066"
+                    }
+                },
+                "trip_update": {
+                    "trip": {
+                    "tripId": "1032_106_336_1AN1032-13_1261-7117DPO2611_1604_e97199339cfad5e0aeb71f2c7faa60f8f6116a14c2ee5d174a17213b78363ab4",
+                    "startDate": "20250827"
+                    },
+                    "stopTimeUpdate": [
+                    {
+                        "stopSequence": 1,
+                        "departure": {
+                        "delay": 0
+                        },
+                        "stopId": "105170"
+                    }
+                    ],
+                    "vehicle": {
+                    "id": "10066"
+                    },
+                    "timestamp": "1756301768"
+                }
+                }
+        },
+    ...ALL other features
+}

@@ -3,8 +3,20 @@ using System.Collections;
 using TMPro;
 using UnityEngine.Events;
 
+
+public enum SimulationType
+{
+    none,
+    simulationv1,
+    simulationv2
+}
+
 public class SimulationManager : MonoBehaviour
 {
+
+
+    public SimulationType CurrentSimulation { get; private set; } = SimulationType.none;
+
     public static SimulationManager Instance;
 
     public float simulationTime { get; private set; } = 0f;
@@ -28,14 +40,15 @@ public class SimulationManager : MonoBehaviour
         {
             Instance = this;  
         }
-        else
-        {
-            Destroy(gameObject);  // Si une instance existe déjà, détruit le nouvel objet
-        }
     }
     private void Start()
     {
         UpdateTimerDisplay();
+    }
+
+    public void SetSimulationType(SimulationType type)
+    {
+        CurrentSimulation = type;
     }
 
     // Update is called once per frame
@@ -53,7 +66,7 @@ public class SimulationManager : MonoBehaviour
         if (simulationTime >= maxSimulationTime)
         {
             isRunning = false;
-            Debug.Log("Simulation terminée !");
+            
         }
     }
 

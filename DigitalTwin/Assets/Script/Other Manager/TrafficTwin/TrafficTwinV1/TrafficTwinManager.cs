@@ -9,7 +9,8 @@ using System.Xml.Serialization;
 using System.Globalization;
 using CesiumForUnity;
 using System.Threading.Tasks;
-#if false
+using Newtonsoft.Json.Linq;
+
 public class TrafficTwinManager : MonoBehaviour
 {
     public static TrafficTwinManager Instance;
@@ -29,12 +30,12 @@ public class TrafficTwinManager : MonoBehaviour
     private GameObject linesParent_speed_3600_7200_woutrw;
 
     //STOCK COLLECTION
-    private JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes_0_3600_diff;
-    private JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes_3600_7200_diff;
-    private JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes_0_3600_wrw;
-    private JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes_3600_7200_wrw;
-    private JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes_0_3600_woutrw;
-    private JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes_3600_7200_woutrw;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes_0_3600_diff;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes_3600_7200_diff;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes_0_3600_wrw;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes_3600_7200_wrw;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes_0_3600_woutrw;
+    private JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes_3600_7200_woutrw;
 
     private List<VehicleRoute> allVehicles = new List<VehicleRoute>();
     private Dictionary<string, List<Vector3>> edgeUnityCoordinates = new Dictionary<string, List<Vector3>>();
@@ -74,10 +75,6 @@ public class TrafficTwinManager : MonoBehaviour
         {
             Instance = this;
         }
-        else
-        {
-            Destroy(gameObject); 
-        }
 
         geoJsonCesiumSpawner.Initialize(georeference);
 
@@ -106,7 +103,8 @@ public class TrafficTwinManager : MonoBehaviour
     {
         TextAsset jsonContentAsset = Resources.Load<TextAsset>(shapesPath_0_3600_diff);
         string jsonContent = jsonContentAsset.text;
-        geoJsonShapes_0_3600_diff = LoadGeoJsonDataAsync<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>>(jsonContent);
+        geoJsonShapes_0_3600_diff = LoadGeoJsonDataAsync<JsonFeature< GeoGeometryLineString>>(jsonContent);
+
         if (geoJsonShapes_0_3600_diff != null)
         {
             foreach (var feature in geoJsonShapes_0_3600_diff.features)
@@ -141,11 +139,11 @@ public class TrafficTwinManager : MonoBehaviour
 
     }*/
 
-    public async Task LoadAllEdgesDataAsync(string jsonContent, JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> data, GameObject linesParentsDensity, GameObject linesParentsSpeed)
+    public async Task LoadAllEdgesDataAsync(string jsonContent, JsonCollection<JsonFeature< GeoGeometryLineString>> data, GameObject linesParentsDensity, GameObject linesParentsSpeed)
     {
         // 1. Charger le fichier JSON et le parser en arrière-plan
         var parsedData = await Task.Run(() =>
-            LoadGeoJsonDataAsync<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>>(jsonContent)
+            LoadGeoJsonDataAsync<JsonFeature< GeoGeometryLineString>>(jsonContent)
         );
 
         if (parsedData != null)
@@ -176,16 +174,16 @@ public class TrafficTwinManager : MonoBehaviour
     }
 
     // Méthode helper pour éviter la duplication de code
-    private async Task LoadDataSet(string shapesPath, JsonCollection<JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString>> geoJsonShapes, GameObject linesParentDensity, GameObject linesParentSpeed)
+    private async Task LoadDataSet(string shapesPath, JsonCollection<JsonFeature< GeoGeometryLineString>> geoJsonShapes, GameObject linesParentDensity, GameObject linesParentSpeed)
     {
         TextAsset jsonContentAsset = Resources.Load<TextAsset>(shapesPath);
         string jsonContent = jsonContentAsset.text;
         await LoadAllEdgesDataAsync(jsonContent, geoJsonShapes, linesParentDensity, linesParentSpeed);
     }
-    private void DrawLine(JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString> feature, GameObject linesParent, bool is_density)
+    private void DrawLine(JsonFeature< GeoGeometryLineString> feature, GameObject linesParent, bool is_density)
     {
         // Instantiate Line Object
-        GameObject lineObject = new GameObject("Line_" + feature.properties.id);
+        GameObject lineObject = new GameObject("Line_" + feature.properties["id"].Value<string>());
         LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
 
         // Largeur constante pour toutes les lignes
@@ -202,11 +200,11 @@ public class TrafficTwinManager : MonoBehaviour
         if (is_density)
         {
             // Calculer le facteur de densité pour la couleur
-            factor = Mathf.Clamp(feature.properties.density, 0f, 10f) / 10f;
+            factor = Mathf.Clamp(feature.properties["density"].Value<float>(), 0f, 10f) / 10f;
         }
         else
         {
-            factor = Mathf.Clamp(feature.properties.speed, 0f, 10f) / 10f;
+            factor = Mathf.Clamp(feature.properties["speed"].Value<float>(), 0f, 10f) / 10f;
         }
 
         // Couleur basée sur la densité (vert = faible densité, rouge = haute densité)
@@ -236,7 +234,7 @@ public class TrafficTwinManager : MonoBehaviour
             lineRenderer.positionCount = validPositions.Count;
             lineRenderer.SetPositions(validPositions.ToArray());
             lineRenderer.transform.parent = linesParent.transform;
-            edgeUnityCoordinates[feature.properties.id] = validPositions;
+            edgeUnityCoordinates[feature.properties["id"].Value<string>()] = validPositions;
         }
         else
         {
@@ -371,17 +369,20 @@ public class TrafficTwinManager : MonoBehaviour
     //VISUALISATION
     private void CheckForSpawns(float currentSimTime)
     {
-        if (currentSimTime < SimulationManager.Instance.simulationStartTime) return;  // Ignore si avant le temps de simulation
+        if (SimulationManager.Instance.CurrentSimulation == SimulationType.simulationv1)
+        {
 
-        var vehiclesToSpawn = allVehicles
+            if (currentSimTime < SimulationManager.Instance.simulationStartTime) return;  // Ignore si avant le temps de simulation
+            var vehiclesToSpawn = allVehicles
             .Where(v => v.depart <= currentSimTime && v.depart >= SimulationManager.Instance.simulationStartTime)
             .ToList();
 
-        // Instancier les véhicules qui répondent à cette condition
-        foreach (var vehicle in vehiclesToSpawn)
-        {
-            CreateMarkeurVecPos(vehicle);
-            allVehicles.Remove(vehicle);
+            // Instancier les véhicules qui répondent à cette condition
+            foreach (var vehicle in vehiclesToSpawn)
+            {
+                CreateMarkeurVecPos(vehicle);
+                allVehicles.Remove(vehicle);
+            }
         }
     }
 
@@ -468,11 +469,11 @@ public class TrafficTwinManager : MonoBehaviour
         allVehicles = new List<VehicleRoute>(allVehiclesRoutes);
     }
 
-    private void DrawRoadMesh(JsonFeature<EdgesGeoJsonProperties, GeoGeometryLineString> feature)
+    private void DrawRoadMesh(JsonFeature< GeoGeometryLineString> feature)
     {
         List<Vector2> uvs = new List<Vector2>();
 
-        GameObject roadObject = new GameObject("RoadMesh_" + feature.properties.id);
+        GameObject roadObject = new GameObject("RoadMesh_" + feature.properties["id"].Value<string>());
         MeshFilter meshFilter = roadObject.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = roadObject.AddComponent<MeshRenderer>();
         meshRenderer.material = defaultMaterialForLine; // Tu peux remplacer par un matériau routier
@@ -551,7 +552,7 @@ public class TrafficTwinManager : MonoBehaviour
         roadObject.transform.parent = meshParent.transform;
 
         // Stocker les points centraux si nécessaire
-        edgeUnityCoordinates[feature.properties.id] = points;
+        edgeUnityCoordinates[feature.properties["id"].Value<string>()] = points;
     }
 
     public void SetActiveByName(string objectName, bool isActive)
@@ -572,18 +573,6 @@ public class TrafficTwinManager : MonoBehaviour
         }
     }
 
-    public void DestroyAllChildrenImmediate(string objectName)
-    {
-        GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
-        GameObject parent = System.Array.Find(allObjects, obj => obj.name == objectName);
-
-        // Parcourir tous les enfants en commençant par la fin
-        while (parent.transform.childCount > 0)
-        {
-            DestroyImmediate(parent.transform.GetChild(0).gameObject);
-        }
-    }
+    
 
 }
-
-#endif

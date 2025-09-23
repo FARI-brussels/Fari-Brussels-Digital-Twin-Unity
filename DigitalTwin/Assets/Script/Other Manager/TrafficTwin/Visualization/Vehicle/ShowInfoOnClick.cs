@@ -2,8 +2,6 @@
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
-#if false
-
 public class ShowInfoOnClick : MonoBehaviour
 {
     //Camera follow script
@@ -31,4 +29,3 @@ public class ShowInfoOnClick : MonoBehaviour
         }
     }
 }
-#endif

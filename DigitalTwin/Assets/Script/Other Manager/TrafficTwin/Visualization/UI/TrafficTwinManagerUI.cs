@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using TMPro; // Pour TextMeshPro si vous l'utilisez
 using System;
-#if false
+
 public class TrafficTwinManagerUI : MonoBehaviour
 {
     private bool is_mesh = true;
@@ -27,7 +27,6 @@ public class TrafficTwinManagerUI : MonoBehaviour
 
     public void OnRoadWorksClicked()
     {
-        Debug.Log("Button road works");
         is_roadworks = !is_roadworks;
         UpdateVisibility();
         UpdateButtonColors();
@@ -36,7 +35,6 @@ public class TrafficTwinManagerUI : MonoBehaviour
 
     public void OnHoursClicked()
     {
-        Debug.Log("Button Hours");
         is_first_hour = !is_first_hour;
         UpdateVisibility();
         UpdateButtonColors();
@@ -44,7 +42,6 @@ public class TrafficTwinManagerUI : MonoBehaviour
 
     public void OnMeshLinesClicked()
     {
-        Debug.Log("Button mesh lines");
         is_mesh = !is_mesh;
         UpdateVisibility();
         UpdateButtonColors();
@@ -52,7 +49,6 @@ public class TrafficTwinManagerUI : MonoBehaviour
 
     public void OnDensityClicked()
     {
-        Debug.Log("Button density");
         is_density = true;
         is_speed = false;
         UpdateVisibility();
@@ -61,7 +57,6 @@ public class TrafficTwinManagerUI : MonoBehaviour
 
     public void OnSpeedClicked()
     {
-        Debug.Log("Button speed");
         is_speed = true;
         is_density = false;
         UpdateVisibility();
@@ -219,4 +214,3 @@ public class TrafficTwinManagerUI : MonoBehaviour
         UpdateButtonColors(); // Initialiser aussi les couleurs des boutons
     }
 }
-#endif

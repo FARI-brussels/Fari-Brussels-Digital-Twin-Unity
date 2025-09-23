@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
-#if false
 
 public class SimulationUI : MonoBehaviour
 {
+
+    [SerializeField] private TrafficTwinManagerv2 trafficTwinManagerv2;
+
     private enum SimulationState
     {
         Stopped,
@@ -15,6 +17,8 @@ public class SimulationUI : MonoBehaviour
     private int currentSpeedIndex = 0;
 
     private SimulationState currentState = SimulationState.Stopped;
+
+
 
     public void OnStartClicked()
     {
@@ -32,8 +36,10 @@ public class SimulationUI : MonoBehaviour
                 // Appui sur "Restart" -> redémarre la simulation mais reste dans le même état
                 SimulationManager.Instance.StartSimulation();
                 // État reste à Running
-                TrafficTwinManager.Instance.DestroyAllChildrenImmediate("Vehicle parents");
+                DestroyAllChildrenImmediate("Vehicle parents");
+                DestroyAllChildrenImmediate("Vehicle parents v2");
                 TrafficTwinManager.Instance.InitAllVehicles();
+                TrafficTwinManagerv2.Instance.LoadVehiclesFromSave();
                 break;
 
             case SimulationState.Paused:
@@ -68,8 +74,10 @@ public class SimulationUI : MonoBehaviour
             SimulationManager.Instance.StopSimulation();
             currentState = SimulationState.Stopped;
             
-            TrafficTwinManager.Instance.DestroyAllChildrenImmediate("Vehicle parents");
+            DestroyAllChildrenImmediate("Vehicle parents");
+            DestroyAllChildrenImmediate("Vehicle parents v2");
             TrafficTwinManager.Instance.InitAllVehicles();
+            TrafficTwinManagerv2.Instance.LoadVehiclesFromSave();
 
         }
     }
@@ -91,5 +99,29 @@ public class SimulationUI : MonoBehaviour
             SimulationManager.Instance.SpeedButtonText.text = "x" + currentMultiplier;
         }
     }
+
+    public void DestroyAllChildrenImmediate(string objectName)
+    {
+        GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+        GameObject parent = System.Array.Find(allObjects, obj => obj.name == objectName);
+
+        // Parcourir tous les enfants en commençant par la fin
+        while (parent.transform.childCount > 0)
+        {
+            DestroyImmediate(parent.transform.GetChild(0).gameObject);
+        }
+    }
+
+    public void OnSimulateClicked()
+    {
+        Application.OpenURL("http://localhost:5173/#/");
+    }
+
+    public void OnRefreshClicked()
+    {
+        trafficTwinManagerv2.refreshAllData();
+
+    }
 }
-#endif
+
+

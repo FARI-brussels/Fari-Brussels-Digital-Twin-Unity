@@ -6,7 +6,8 @@ using TransitRealtime;
 using Newtonsoft.Json;
 using Google.Protobuf;
 using CesiumForUnity;
-#if false
+using Newtonsoft.Json.Linq;
+
 public class SncbManager : MonoBehaviour
 {
 
@@ -39,8 +40,8 @@ public class SncbManager : MonoBehaviour
     private GameObject vehiclesParent;
 
     //Var to store the shapes & stops collection
-    private JsonCollection<JsonFeature<SncbGeoPropertiesShapes, IGeoGeometry>> geoJsonDataShapes;
-    private JsonCollection<JsonFeature<SncbGeoPropertiesStops, IGeoGeometry>> geoJsonDataStops;
+    private JsonCollection<JsonFeature< IGeoGeometry>> geoJsonDataShapes;
+    private JsonCollection<JsonFeature< IGeoGeometry>> geoJsonDataStops;
 
     //Utils var for the vehicle
     public Dictionary<string, (GameObject, List<double>)> vehicles = new Dictionary<string, (GameObject, List<double>)>();
@@ -88,7 +89,7 @@ public class SncbManager : MonoBehaviour
         foreach (var feature in geoJsonDataShapes.features)
         {
             //Create a key with the line_id and the direction
-            var key = (feature.properties.stationfrom_id, feature.properties.stationto_id);
+            var key = (feature.properties["stationfrom_id"].Value<string>(), feature.properties["stationto_id"].Value<string>());
 
             //Check if the key is already in the dict
             if (!routesDictionary.ContainsKey(key))
@@ -123,7 +124,7 @@ public class SncbManager : MonoBehaviour
         while (true)
         {
             // Call API
-            yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<SncbGeoPropertiesVehiclePosition, IGeoGeometry>>>(apiUrl, GetSncbVehiclePosition));
+            yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature< IGeoGeometry>>>(apiUrl, GetSncbVehiclePosition));
 
             // Wait x sec
             yield return new WaitForSeconds(refreshInterval);
@@ -138,7 +139,7 @@ public class SncbManager : MonoBehaviour
         bool shapesLoaded = false; // Flag to check if shapes data has been loaded
 
         // Start coroutine to fetch stop data from API
-        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<SncbGeoPropertiesStops, IGeoGeometry>>>(
+        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature< IGeoGeometry>>>(
             apiUrlStops, (data) => {
                 SncbStop(data);  // Process stop data
                 stopsLoaded = true;  // Mark stops as loaded
@@ -147,7 +148,7 @@ public class SncbManager : MonoBehaviour
 
         
         // Start coroutine to fetch shape data from API
-        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature<SncbGeoPropertiesShapes, IGeoGeometry>>>(
+        yield return StartCoroutine(apiClient.GetApiData<JsonCollection<JsonFeature< IGeoGeometry>>>(
             apiUrlShapes, (data) => {
                 geoJsonDataShapes = data;  // Store the fetched shape data
                 //SncbShapes(data);  // Process shape data
@@ -163,7 +164,7 @@ public class SncbManager : MonoBehaviour
     }
 
     //DrawSncbShapes
-    private void SncbShapes(JsonCollection<JsonFeature<SncbGeoPropertiesShapes, IGeoGeometry>> data)
+    private void SncbShapes(JsonCollection<JsonFeature< IGeoGeometry>> data)
     {
         geoJsonDataShapes = data;  // Store the shape data
 
@@ -176,12 +177,12 @@ public class SncbManager : MonoBehaviour
         }
     }
 
-    private void DrawLineString(JsonFeature<SncbGeoPropertiesShapes, IGeoGeometry> feature)
+    private void DrawLineString(JsonFeature< IGeoGeometry> feature)
     {
         if (feature.geometry is ILineStringGeometry lineString)
         {
             //Instantiate Stib Stop
-            GameObject lineObject = new GameObject("Line_" + feature.properties.stationfrom_id);
+            GameObject lineObject = new GameObject("Line_" + feature.properties["stationfrom_id"].Value<string>());
             LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
 
             //Visualization
@@ -210,7 +211,7 @@ public class SncbManager : MonoBehaviour
         
     }
 
-    private void SncbStop(JsonCollection<JsonFeature<SncbGeoPropertiesStops, IGeoGeometry>> data)
+    private void SncbStop(JsonCollection<JsonFeature< IGeoGeometry>> data)
     {
         geoJsonDataStops = data;
         if (geoJsonDataStops != null)
@@ -221,7 +222,7 @@ public class SncbManager : MonoBehaviour
                 {
                     if (pointGeometry != null)
                     {
-                        if (feature.properties.class_en == "Station" || feature.properties.class_en == "Stop in open track")
+                        if (feature.properties["class_en"].Value<string>() == "Station" || feature.properties["class_en"].Value<string>() == "Stop in open track")
                         {
                             double lon = pointGeometry.coordinates[0];
                             double lat = pointGeometry.coordinates[1];
@@ -240,7 +241,7 @@ public class SncbManager : MonoBehaviour
             }
         }
     }
-    private void CreateMarkeurStop(Vector3 position, JsonFeature<SncbGeoPropertiesStops, IGeoGeometry> feature )
+    private void CreateMarkeurStop(Vector3 position, JsonFeature< IGeoGeometry> feature )
     {
 
         //Instantiate Stib Stop
@@ -254,7 +255,7 @@ public class SncbManager : MonoBehaviour
         clickScript.Initialize(feature);
 
         //Visualization
-        vehicleGameObject.name = feature.properties.ptcarid;
+        vehicleGameObject.name = feature.properties["ptcarid"].Value<string>();
         sphereRenderer.material.color = Color.red;
 
         //Position
@@ -267,9 +268,9 @@ public class SncbManager : MonoBehaviour
         vehicleGameObject.transform.parent = stopsParent.transform;
     }
 
-    private GameObject CreateMarkeurVecPos(Vector3 position, JsonFeature<SncbGeoPropertiesVehiclePosition, IGeoGeometry> feature)
+    private GameObject CreateMarkeurVecPos(Vector3 position, JsonFeature< IGeoGeometry> feature)
     {
-        var key = (feature.properties.ptcarid_start, feature.properties.ptcarid_end);
+        var key = (feature.properties["ptcarid_start"].Value<string>(), feature.properties["ptcarid_end"].Value<string>());
         var route = routesDictionary[key];
 
         Vector3 endPoint = Vector3.zero;
@@ -285,7 +286,7 @@ public class SncbManager : MonoBehaviour
         SncbVehicleMover mover = vehicleGameObject.AddComponent<SncbVehicleMover>();
 
         //Visualization
-        vehicleGameObject.name = feature.properties.trip_id;
+        vehicleGameObject.name = feature.properties["trip_id"].Value<string>();
         //Rotation
         Quaternion rotation = InitVehicleRotation(position, endPoint, route);
         vehicleGameObject.transform.rotation = rotation;
@@ -326,7 +327,7 @@ public class SncbManager : MonoBehaviour
         return Quaternion.identity;
     }
 
-    private void GetSncbVehiclePosition(JsonCollection<JsonFeature<SncbGeoPropertiesVehiclePosition, IGeoGeometry>> data)
+    private void GetSncbVehiclePosition(JsonCollection<JsonFeature< IGeoGeometry>> data)
     {
         if (data != null)
         {
@@ -340,22 +341,22 @@ public class SncbManager : MonoBehaviour
                         Vector3 newPositionUcsStop = geoJsonCesiumSpawner.GetCesiumPosition(pointGeometry.coordinates[0], pointGeometry.coordinates[1]);
 
 
-                        if (vehicles.ContainsKey(feature.properties.trip_id))
+                        if (vehicles.ContainsKey(feature.properties["trip_id"].Value<string>()))
                         {
                             
-                            Vector3 positioninit = vehicles[feature.properties.trip_id].Item1.transform.position;
+                            Vector3 positioninit = vehicles[feature.properties["trip_id"].Value<string>()].Item1.transform.position;
 
-                            GameObject vehicle = vehicles[feature.properties.trip_id].Item1;
+                            GameObject vehicle = vehicles[feature.properties["trip_id"].Value<string>()].Item1;
 
                             float distance = Vector3.Distance(positioninit, newPositionUcsStop);
 
 
                             if (distance < 1500)
                             {
-                                Vector3 initPosition = vehicles[feature.properties.trip_id].Item1.transform.position;
+                                Vector3 initPosition = vehicles[feature.properties["trip_id"].Value<string>()].Item1.transform.position;
                                 if (initPosition != newPositionUcsStop)
                                 {
-                                    List<Vector3> path = FindPath(feature.properties.ptcarid_start, feature.properties.ptcarid_end, initPosition, newPositionUcsStop);
+                                    List<Vector3> path = FindPath(feature.properties["ptcarid_start"].Value<string>(), feature.properties["ptcarid_end"].Value<string>(), initPosition, newPositionUcsStop);
 
                                     SncbVehicleMover mover = vehicle.GetComponent<SncbVehicleMover>();
                                     if (mover != null && path.Count > 0)
@@ -368,11 +369,11 @@ public class SncbManager : MonoBehaviour
                             }
                             else
                             {
-                                vehicles[feature.properties.trip_id].Item1.transform.position = newPositionUcsStop;
+                                vehicles[feature.properties["trip_id"].Value<string>()].Item1.transform.position = newPositionUcsStop;
                             }
 
                                 
-                            vehicles[feature.properties.trip_id] = (vehicle, pointGeometry.coordinates);
+                            vehicles[feature.properties["trip_id"].Value<string>()] = (vehicle, pointGeometry.coordinates);
                         }
                         else
                         {
@@ -380,7 +381,7 @@ public class SncbManager : MonoBehaviour
                             // Create a marker for the stop in Unity
                             GameObject newVehicle = CreateMarkeurVecPos(newPositionUcsStop, feature);//, stop.stop_name, stop.stop_id, stop.route_short_name, feature);
                             // Add the new vehicle to the dictionary with its position
-                            vehicles.Add($"{feature.properties.trip_id}",
+                            vehicles.Add($"{feature.properties["trip_id"].Value<string>()}",
                                 (newVehicle, new List<double>
                                     { pointGeometry.coordinates[0], pointGeometry.coordinates[1] }
                                 )
@@ -508,4 +509,3 @@ public class SncbManager : MonoBehaviour
     
 
 }
-#endif

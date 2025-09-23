@@ -9,6 +9,8 @@ using System.IO.Compression;
 using TransitRealtime;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using System.Linq;
+using Google.Protobuf;
 
 public enum ApiDataType
 {
@@ -52,6 +54,7 @@ public class ApiClientv2
     {
         //Call response and info
         string jsonResponse = null;
+
         bool requestCompleted = false;
         bool requestSuccess = false;
 
@@ -97,51 +100,32 @@ public class ApiClientv2
         //
         // 2 : Deserialization in other thread != main thread
 
-        T deserializedData = default(T);
-        bool deserializationCompleted = false;
-        bool deserializationSuccess = false;
+        bool isGeoJSON = jsonResponse.Contains("\"FeatureCollection\"") ||
+                         jsonResponse.Contains("\"Feature\"") ||
+                         jsonResponse.Contains("\"geometry\"");
 
-        // Multi thread deserialization
-        Task.Run(() =>
+        var converters = new List<JsonConverter>();
+        if (isGeoJSON)
         {
-            try
-            {
-                //Settings for deserialization
-                JsonSerializerSettings settings = new JsonSerializerSettings
-                {
-                    //Choose converter (LineString or Point or other define in GeoGeometry.cs) 
-                    Converters = new List<JsonConverter> { new GeoGeometryConverter() }
-                };
-                //Deserialization of ALL the data (Big operation) 
-                deserializedData = JsonConvert.DeserializeObject<T>(jsonResponse, settings);
-                deserializationSuccess = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Erreur de parsing JSON: {e.Message}");
-                Debug.LogError($"Stack trace: {e.StackTrace}");
-                deserializationSuccess = false;
-            }
-            finally
-            {
-                deserializationCompleted = true;
-            }
-        });
-
-        // Wait until deserialization finished 
-        yield return new WaitUntil(() => deserializationCompleted);
-
-        // Callback data (Main data) 
-        if (deserializationSuccess)
-        {
-            callback(deserializedData);
+            converters.Add(new GeoGeometryConverter());
         }
-        else
-        {
-            callback(default);
-        }
+
+        var task = JsonHelper.DeserializeAsync<T>(jsonResponse, converters);
+        yield return new WaitUntil(() => task.IsCompleted);
+
+        callback(task.Result);
     }
-    
+
+    internal IEnumerator GetApiData<T>()
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// GTFS conversion
+    /// </summary>
+
+
     private IEnumerator FetchBinaryGTFS<T>(string url, Action<T> callback)
     {
         Debug.Log("GTFS-RT Parser");
@@ -158,7 +142,7 @@ public class ApiClientv2
             request.downloadHandler = new DownloadHandlerBuffer();
             yield return request.SendWebRequest();
 
-            //If request NSuccess then callback null 
+             //If request No Success then callback null 
             if (request.result != UnityWebRequest.Result.Success)
             {
 
@@ -189,6 +173,7 @@ public class ApiClientv2
                         yield break;
                     }
 
+                    
                     var geoJson = ConvertFeedToGeoJson(feed);
 
                     callback((T)(object)geoJson);
@@ -210,6 +195,7 @@ public class ApiClientv2
             }
         }
     }
+    /*
     private JsonCollection<JsonFeature<GeoGeometryPoint>> ConvertFeedToGeoJson(FeedMessage feed)
     {
         var features = new List<JsonFeature<GeoGeometryPoint>>();
@@ -252,11 +238,114 @@ public class ApiClientv2
             type = "FeatureCollection",
             features = features
         };
+    }*/
+
+    public interface IGtfsRtGeoJsonConverter
+    {
+        IEnumerable<JsonFeature<IGeoGeometry>> Convert(FeedEntity entity);
+    }
+
+
+    public class GtfsRtGeoJsonConverter : IGtfsRtGeoJsonConverter
+    {
+        public IEnumerable<JsonFeature<IGeoGeometry>> Convert(FeedEntity entity)
+        {
+            // ---------- Geometry ----------
+            IGeoGeometry geometry = null;
+            //Does entity.Vehicle exist ?
+            if (entity.Vehicle?.Position != null)
+            {
+                //Create new geometry point
+                geometry = new GeoGeometryPoint
+                {
+                    type = "Point",
+                    coordinates = new List<double>
+                    {
+                        entity.Vehicle.Position.Longitude,
+                        entity.Vehicle.Position.Latitude
+                    }
+                };
+            }
+
+            // ---------- Properties dynamiques ----------
+            var properties = new JObject();
+
+            var vehicleObj = ToFilteredJObject(entity.Vehicle);
+            if (vehicleObj != null) properties["vehicle"] = vehicleObj;
+
+            var tripUpdateObj = ToFilteredJObject(entity.TripUpdate);
+            if (tripUpdateObj != null) properties["trip_update"] = tripUpdateObj;
+
+            var alertObj = ToFilteredJObject(entity.Alert);
+            if (alertObj != null) properties["alert"] = alertObj;
+
+            // ---------- Yield ----------
+            if (properties.HasValues)
+            {
+                JsonFeature<IGeoGeometry> returnGeoJson = new JsonFeature<IGeoGeometry>
+                {
+                    id = entity.Id,
+                    type = "Feature",
+                    properties = properties,
+                    geometry = geometry
+                };
+                yield return returnGeoJson;
+            }
+        }
+        private JObject ToFilteredJObject(IMessage proto)
+        {
+            if (proto == null)
+                return null;
+
+            string json = null;
+            try
+            {
+                json = JsonFormatter.Default.Format(proto);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ToFilteredJObject] Error serializing {proto.Descriptor?.Name}: {ex.Message}");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+
+            try
+            {
+                return JObject.Parse(json);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ToFilteredJObject] Error parsing JSON for {proto.Descriptor?.Name}: {ex.Message}\nJSON: {json}");
+                return null;
+            }
+        }
+
+    }
+
+
+    private readonly IGtfsRtGeoJsonConverter converter = new GtfsRtGeoJsonConverter();
+
+    private JsonCollection<JsonFeature<IGeoGeometry>> ConvertFeedToGeoJson(FeedMessage feed)
+    {
+        var features = new List<JsonFeature<IGeoGeometry>>();
+
+        foreach (var entity in feed.Entity)
+        {
+            features.AddRange(converter.Convert(entity));
+        }
+
+        return new JsonCollection<JsonFeature<IGeoGeometry>>
+        {
+            type = "FeatureCollection",
+            features = features
+        };
     }
 
 
 
-    private IEnumerator DownloadGTFS(string url, Action<Dictionary<string, string>> callback, string localGTFSFolder)
+private IEnumerator DownloadGTFS(string url, Action<Dictionary<string, string>> callback, string localGTFSFolder)
     {
         Debug.Log("GTFS Parser");
         string filePath = Path.Combine(localGTFSFolder, "gtfs.zip");
@@ -292,8 +381,6 @@ public class ApiClientv2
                 Dictionary<string, string> extractedFiles = ExtractGTFSFromMemory(zipData);
                 SaveGtfsZipEditor(zipData, localGTFSFolder);
                 callback(extractedFiles);
-
-
             }
         }
     }

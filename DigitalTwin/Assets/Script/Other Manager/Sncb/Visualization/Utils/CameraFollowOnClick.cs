@@ -3,7 +3,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if false
+using Newtonsoft.Json.Linq;
 
 public class CameraFollowOnClickSncb : MonoBehaviour
 {
@@ -26,7 +26,7 @@ public class CameraFollowOnClickSncb : MonoBehaviour
     public void Initialize(object feature)
     {
         _feature = feature;
-        if (_feature is JsonFeature<SncbGeoPropertiesStops, IGeoGeometry> sncbFeatureStop)
+        if (_feature is JsonFeature< IGeoGeometry> sncbFeatureStop)
         {
             offsetStop = new Vector3(-offset.x, -offset.y + 2.95f, -offset.z-7.15f);
         }
@@ -44,7 +44,7 @@ public class CameraFollowOnClickSncb : MonoBehaviour
         if (target != null && isFocused)
         {
             Vector3 desiredPosition = target.TransformPoint(offset);
-            if (_feature is JsonFeature<SncbGeoPropertiesStops, IGeoGeometry> sncbFeatureStop)
+            if (_feature is JsonFeature< IGeoGeometry> sncbFeatureStop)
             {
                 desiredPosition = target.TransformPoint(offsetStop);
             }
@@ -85,36 +85,35 @@ public class CameraFollowOnClickSncb : MonoBehaviour
     /// Displays vehicle and terminus information on the UI.
     private void DisplayTargetInfo()
     {
-        if (_feature is JsonFeature<SncbGeoPropertiesVehiclePosition, IGeoGeometry> sncbFeatureVehicle)
+        if (_feature is JsonFeature< IGeoGeometry> sncbFeatureVehicle)
         {
             if (sncbFeatureVehicle.geometry is IPointGeometry geoloc)
-                infoText.text = $"Vehicle : {sncbFeatureVehicle.properties.trip_headsign}\n\n" +
+                infoText.text = $"Vehicle : {sncbFeatureVehicle.properties["trip_headsign"].Value<string>()}\n\n" +
                     $"Trip informations : \n" +
-                    $"        Full Id : {sncbFeatureVehicle.properties.trip_id}\n" +
-                    $"        Direction : {sncbFeatureVehicle.properties.trip_headsign}\n" +
+                    $"        Full Id : {sncbFeatureVehicle.properties["trip_id"].Value<string>()}\n" +
+                    $"        Direction : {sncbFeatureVehicle.properties["trip_headsign"].Value<string>()}\n" +
                     $"\nLast localisation : \n" +
                     $"     Lat :{geoloc.coordinates[1]}\n" +
                     $"     Lon :{geoloc.coordinates[0]}\n\n" +
                     $"The vehicle is between :\n" +
-                    $"     Start :  {sncbFeatureVehicle.properties.name_start} \n" +
-                    $"     Id :  {sncbFeatureVehicle.properties.ptcarid_start} \n\n" +
-                    $"     End : {sncbFeatureVehicle.properties.name_end} \n" +
-                    $"     Id :  {sncbFeatureVehicle.properties.ptcarid_end}";
+                    $"     Start :  {sncbFeatureVehicle.properties["name_start"].Value<string>()} \n" +
+                    $"     Id :  {sncbFeatureVehicle.properties["ptcarid_start"].Value<string>()} \n\n" +
+                    $"     End : {sncbFeatureVehicle.properties["name_end"].Value<string>()} \n" +
+                    $"     Id :  {sncbFeatureVehicle.properties["ptcarid_end"].Value<string>()}";
         }
-        else if (_feature is JsonFeature<SncbGeoPropertiesStops, IGeoGeometry> sncbFeatureStop)
+        else if (_feature is JsonFeature< IGeoGeometry> sncbFeatureStop)
         {
             if (sncbFeatureStop.geometry is IPointGeometry geoloc)
-                infoText.text = $"Stop : {sncbFeatureStop.properties.ptcarid}\n\n" +
+                infoText.text = $"Stop : {sncbFeatureStop.properties["ptcarid"].Value<string>()}\n\n" +
                     $"Basic Informations : \n" +
-                    $"        French name : {sncbFeatureStop.properties.longnamefrench}\n" +
-                    $"        Dutch name : {sncbFeatureStop.properties.longnamedutch}\n" +
-                    $"        Classification : {sncbFeatureStop.properties.classification}\n" +
-                    $"        Taf Tap Code : {sncbFeatureStop.properties.taftapcode}\n" +
-                    $"        Symbolic name : {sncbFeatureStop.properties.symbolicname}\n" +
+                    $"        French name : {sncbFeatureStop.properties["longnamefrench"].Value<string>()}\n" +
+                    $"        Dutch name : {sncbFeatureStop.properties["longnamedutch"].Value<string>()}\n" +
+                    $"        Classification : {sncbFeatureStop.properties["classification"].Value<string>()}\n" +
+                    $"        Taf Tap Code : {sncbFeatureStop.properties["taftapcode"].Value<string>()}\n" +
+                    $"        Symbolic name : {sncbFeatureStop.properties["symbolicname"].Value<string>()}\n" +
                     $"\n Localisation : \n" +
                     $"     Lat :{geoloc.coordinates[1]}\n" +
                     $"     Lon :{geoloc.coordinates[0]}\n\n";
         }
     }
 }
-#endif
